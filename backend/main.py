@@ -116,6 +116,65 @@ def send_otp_email(email, code):
         server.send_message(message)
 
 
+def send_provider_notification(interaction_data, hcp=None):
+    recipient = (hcp.email if hcp and hcp.email else os.getenv("DEFAULT_PROVIDER_NOTIFICATION_EMAIL", "")).strip()
+    notification = {
+        "recipient": recipient,
+        "hcp_name": interaction_data.get("hcp_name") or "Healthcare Provider",
+        "interaction_type": interaction_data.get("interaction_type") or "Interaction",
+        "interaction_date": interaction_data.get("interaction_date") or "",
+        "interaction_time": interaction_data.get("interaction_time") or "",
+        "topics_discussed": interaction_data.get("topics_discussed") or "",
+        "followup_actions": interaction_data.get("followup_actions") or "",
+        "interaction_id": interaction_data.get("id") or "",
+    }
+    trigger_n8n("provider_notification_requested", notification)
+
+    host = os.getenv("SMTP_HOST", "")
+    if not host or not recipient:
+        return {
+            "sent": False,
+            "channel": "n8n" if os.getenv("N8N_WEBHOOK_URL") else "none",
+            "recipient": recipient,
+            "message": "Notification queued for workflow or skipped because SMTP recipient is not configured.",
+        }
+
+    message = EmailMessage()
+    message["Subject"] = f"HCP CRM interaction saved: {notification['hcp_name']}"
+    message["From"] = os.getenv("SMTP_FROM", "no-reply@hcp-crm.local")
+    message["To"] = recipient
+    message.set_content(
+        "\n".join(
+            [
+                f"Hello {notification['hcp_name']},",
+                "",
+                "A new HCP CRM interaction record has been saved.",
+                "",
+                f"Interaction type: {notification['interaction_type']}",
+                f"Date: {notification['interaction_date']}",
+                f"Time: {notification['interaction_time']}",
+                f"Topics discussed: {notification['topics_discussed'] or 'Not provided'}",
+                f"Follow-up actions: {notification['followup_actions'] or 'Not provided'}",
+                "",
+                "This is an automated notification from HCP CRM.",
+            ]
+        )
+    )
+
+    try:
+        port = int(os.getenv("SMTP_PORT", "587"))
+        username = os.getenv("SMTP_USERNAME", "")
+        password = os.getenv("SMTP_PASSWORD", "")
+        with smtplib.SMTP(host, port, timeout=10) as server:
+            server.starttls()
+            if username:
+                server.login(username, password)
+            server.send_message(message)
+        return {"sent": True, "channel": "email", "recipient": recipient, "message": "Notification sent to provider."}
+    except Exception as exc:
+        return {"sent": False, "channel": "email", "recipient": recipient, "message": f"Notification email failed: {exc}"}
+
+
 def trigger_n8n(event, payload):
     webhook_url = os.getenv("N8N_WEBHOOK_URL")
     if not webhook_url:
@@ -462,7 +521,9 @@ def search_hcps(q: str = "", user: User = Depends(current_user), db: Session = D
 @app.post("/api/interactions")
 def create_interaction(payload: InteractionCreate, user: User = Depends(current_user), db: Session = Depends(get_db)):
     if bool(getattr(user, "temporary", False)):
-        return serialize_interaction_payload(payload, f"temp-{int(datetime.utcnow().timestamp())}")
+        serialized = serialize_interaction_payload(payload, f"temp-{int(datetime.utcnow().timestamp())}")
+        serialized["notification"] = send_provider_notification(serialized)
+        return serialized
 
     hcp = None
     try:
@@ -498,10 +559,13 @@ def create_interaction(payload: InteractionCreate, user: User = Depends(current_
         db.refresh(interaction)
         serialized = serialize_interaction(interaction)
         trigger_n8n("interaction_created", serialized)
+        serialized["notification"] = send_provider_notification(serialized, hcp)
         return serialized
     except OperationalError:
         db.rollback()
-        return serialize_interaction_payload(payload, f"temp-{int(datetime.utcnow().timestamp())}")
+        serialized = serialize_interaction_payload(payload, f"temp-{int(datetime.utcnow().timestamp())}")
+        serialized["notification"] = send_provider_notification(serialized)
+        return serialized
 
 
 @app.get("/api/interactions")

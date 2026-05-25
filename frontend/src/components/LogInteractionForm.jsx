@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { saveInteraction, sendChatMessage, trackActivity } from "../hooks/api";
 import { addMessage, setError, setLoading } from "../store/chatSlice";
-import { populateFromAI, resetForm, setField, setSavedId, setSaveError, setSaving, setSuggestions } from "../store/interactionSlice";
+import { populateFromAI, resetForm, setField, setNotificationStatus, setSavedId, setSaveError, setSaving, setSuggestions } from "../store/interactionSlice";
 
 function FormCard({ title, description, children }) {
   return (
@@ -31,8 +31,10 @@ function LogInteractionForm({ selectedHcp }) {
       const response = await saveInteraction(form);
       trackActivity("crm_save_button", "/crm").catch(() => {});
       dispatch(setSavedId(response.data.id));
+      dispatch(setNotificationStatus(response.data.notification?.message || "Provider notification triggered."));
     } catch (error) {
       dispatch(setSaveError("Could not save interaction"));
+      dispatch(setNotificationStatus(""));
     } finally {
       dispatch(setSaving(false));
     }
@@ -200,7 +202,7 @@ function LogInteractionForm({ selectedHcp }) {
       </FormCard>
 
       <div className="form-actions">
-        <div className="form-status">{form.saveError || (form.savedId ? `Saved ${form.savedId}` : "")}</div>
+        <div className="form-status">{form.saveError || (form.savedId ? `Saved ${form.savedId}. ${form.notificationStatus}` : "")}</div>
         <button type="button" onClick={() => dispatch(resetForm())}>Reset</button>
         <button className="save-button" type="button" onClick={handleSave} disabled={form.isSaving}>
           {form.isSaving ? "Saving..." : "Save"}

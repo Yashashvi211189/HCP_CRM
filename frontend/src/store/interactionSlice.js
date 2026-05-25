@@ -20,6 +20,7 @@ const buildInitialState = () => {
     isSaving: false,
     savedId: null,
     saveError: null,
+    notificationStatus: "",
   };
 };
 
@@ -47,6 +48,9 @@ const interactionSlice = createSlice({
       state.savedId = action.payload;
       state.saveError = null;
     },
+    setNotificationStatus: (state, action) => {
+      state.notificationStatus = action.payload || "";
+    },
     setSaveError: (state, action) => {
       state.saveError = action.payload;
     },
@@ -54,6 +58,6 @@ const interactionSlice = createSlice({
   },
 });
 
-export const { setField, populateFromAI, setSuggestions, setSaving, setSavedId, setSaveError, resetForm } =
+export const { setField, populateFromAI, setSuggestions, setSaving, setSavedId, setSaveError, setNotificationStatus, resetForm } =
   interactionSlice.actions;
 export default interactionSlice.reducer;
