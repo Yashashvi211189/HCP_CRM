@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from types import SimpleNamespace
 from typing import Optional
-from urllib import request
+from urllib import parse, request
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -152,6 +152,13 @@ class ChatRequest(BaseModel):
     history: Optional[list[dict]] = None
 
 
+class PlacesSearchRequest(BaseModel):
+    query: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    radius: Optional[int] = 5000
+
+
 class InteractionCreate(BaseModel):
     hcp_id: Optional[int] = None
     hcp_name: Optional[str] = ""
@@ -260,6 +267,80 @@ def serialize_user(user, db):
     }
 
 
+def _mock_places(query):
+    normalized = (query or "healthcare").lower()
+    if "hospital" in normalized:
+        names = ["Apollo Hospital", "Fortis Hospital", "Max Super Speciality Hospital"]
+        category = "Hospital"
+    elif "clinic" in normalized:
+        names = ["Apollo Clinic", "CityCare Medical Clinic", "HealthFirst Clinic"]
+        category = "Clinic"
+    else:
+        names = ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"]
+        category = "Doctor"
+    return [
+        {
+            "id": f"mock-{index}",
+            "name": name,
+            "category": category,
+            "rating": round(4.7 - (index * 0.2), 1),
+            "address": f"{index + 1} Healthcare Avenue, Bengaluru",
+            "distance": f"{1.2 + index:.1f} km",
+            "phone": "+91 98765 43210",
+            "open_now": index != 2,
+            "availability": "Today 4:00 PM" if index == 0 else "Tomorrow 10:00 AM",
+            "latitude": 12.9716 + (index * 0.01),
+            "longitude": 77.5946 + (index * 0.01),
+            "directions_url": f"https://www.google.com/maps/search/?api=1&query={name.replace(' ', '+')}",
+        }
+        for index, name in enumerate(names)
+    ]
+
+
+def _google_places_search(payload: PlacesSearchRequest):
+    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
+    if not api_key:
+        return {"source": "mock", "results": _mock_places(payload.query)}
+
+    params = {
+        "query": payload.query,
+        "key": api_key,
+    }
+    if payload.latitude is not None and payload.longitude is not None:
+        params["location"] = f"{payload.latitude},{payload.longitude}"
+        params["radius"] = str(payload.radius or 5000)
+
+    query_string = parse.urlencode(params)
+    url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?{query_string}"
+    try:
+        with request.urlopen(url, timeout=8) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception:
+        return {"source": "mock", "results": _mock_places(payload.query)}
+
+    results = []
+    for place in data.get("results", [])[:12]:
+        location = place.get("geometry", {}).get("location", {})
+        name = place.get("name", "")
+        results.append(
+            {
+                "id": place.get("place_id", ""),
+                "name": name,
+                "category": ", ".join(place.get("types", [])[:2]).replace("_", " ").title(),
+                "rating": place.get("rating", "New"),
+                "address": place.get("formatted_address", ""),
+                "distance": "Nearby",
+                "phone": "",
+                "open_now": place.get("opening_hours", {}).get("open_now"),
+                "availability": "Check availability",
+                "latitude": location.get("lat"),
+                "longitude": location.get("lng"),
+                "directions_url": f"https://www.google.com/maps/search/?api=1&query={parse.quote_plus(name)}",
+            }
+        )
+    return {"source": "google", "results": results}
+
+
 @app.post("/auth/send-otp")
 def send_otp(payload: SendOTPRequest, db: Session = Depends(get_db)):
     if not payload.name.strip() or not payload.email.strip():
@@ -350,6 +431,12 @@ def chat(request: ChatRequest, user: User = Depends(current_user), db: Session =
     result = run_agent(request.message, request.history or [], None if is_temporary else db, user.id)
     log_activity(db, user.id, "crm_chat", "/api/chat")
     return result
+
+
+@app.post("/api/places/search")
+def places_search(payload: PlacesSearchRequest, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    log_activity(db, user.id, "healthcare_place_search", "/api/places/search")
+    return _google_places_search(payload)
 
 
 @app.get("/api/hcps")

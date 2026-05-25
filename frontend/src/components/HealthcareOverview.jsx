@@ -1,63 +1,64 @@
 const capabilityCards = [
-  ["Interaction Tracking", "Record meetings, calls, events, and engagement history.", "IT"],
-  ["AI Assistant", "Generate summaries, recommendations, follow-up actions, and insights.", "AI"],
-  ["HCP Profiles", "Maintain comprehensive physician and healthcare professional records.", "HP"],
-  ["Compliance Management", "Support documentation, audit readiness, and regulated workflows.", "CM"],
-  ["Analytics & Reporting", "Track engagement performance and field activity trends.", "AR"],
-  ["Collaboration", "Enable coordination across medical, commercial, and field teams.", "CO"],
+  ["Find Doctors", "Discover verified specialists by city, speciality, rating, and distance.", "FD"],
+  ["Nearby Clinics", "Compare clinics, availability, photos, directions, and contact details.", "NC"],
+  ["Hospitals", "Locate hospitals, emergency services, and consultation options near you.", "HP"],
+  ["Appointments", "Schedule visits, view previous appointments, and manage follow-ups.", "AP"],
+  ["AI Assistant", "Get specialist suggestions, reminders, provider recommendations, and visit guidance.", "AI"],
+  ["Health Records", "Organize prescriptions, lab reports, notes, and medical documents.", "HR"],
 ];
 
 const stats = [
-  ["2500+", "Managed HCP Profiles"],
-  ["95%", "Interaction Capture Rate"],
-  ["40%", "Faster Documentation"],
-  ["24/7", "AI Assistance"],
+  ["2500+", "Verified Providers"],
+  ["120+", "Nearby Clinics"],
+  ["40%", "Faster Booking"],
+  ["24/7", "AI Health Guidance"],
 ];
 
-const workflow = ["Identify HCP", "Schedule Interaction", "Conduct Meeting", "Capture Discussion", "AI Generates Insights", "Save To CRM"];
+const workflow = ["Find Provider", "Compare Options", "Book Appointment", "Visit Doctor", "Capture Notes", "Track Records"];
 
 const reasons = [
-  "Centralized HCP information",
-  "Faster field reporting",
-  "Better follow-up management",
-  "Improved engagement visibility",
-  "AI-assisted documentation",
-  "Scalable healthcare operations",
+  "Nearby doctors and hospitals",
+  "Faster appointment booking",
+  "Better visit follow-up management",
+  "AI-assisted provider recommendations",
+  "Health records in one place",
+  "Directions and contact support",
 ];
 
-function HealthcareOverview({ selectedHcp, onStartInteraction }) {
+function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
   return (
     <section className="overview-page">
       <div className="overview-hero">
         <div>
-          <p className="eyebrow">Healthcare CRM platform</p>
-          <h1>Healthcare Provider Relationship Management</h1>
+          <p className="eyebrow">Your healthcare dashboard</p>
+          <h1>Find Trusted Doctors Near You</h1>
           <p>
-            Centralize healthcare professional engagement, interaction tracking, compliance management, and AI-assisted
-            insights within a single intelligent workspace.
+            Discover verified doctors, clinics, hospitals, and healthcare specialists across India. Compare ratings,
+            availability, and instantly book appointments with AI-assisted recommendations.
           </p>
           <div className="overview-actions">
-            <button type="button" onClick={onStartInteraction}>Start Interaction</button>
-            <button className="secondary-button" type="button" onClick={onStartInteraction}>View HCP Directory</button>
+            <button type="button" onClick={() => onNavigate("doctors")}>Find Doctors</button>
+            <button className="secondary-button" type="button" onClick={onStartInteraction}>Book Appointment</button>
+            <button className="secondary-button" type="button" onClick={() => onNavigate("clinics")}>View Nearby Clinics</button>
           </div>
         </div>
         <div className="overview-profile-card">
-          <span>Current HCP workspace</span>
-          <strong>{selectedHcp?.name || "No HCP selected"}</strong>
-          <p>{selectedHcp?.specialty || "Specialty not selected"}</p>
-          <small>{selectedHcp?.organization || "Organization not available"}</small>
+          <span>Your Healthcare Dashboard</span>
+          <strong>{selectedHcp?.name || "Healthcare profile"}</strong>
+          <p>Current Location: Bengaluru, India</p>
+          <small>Nearest Hospital: Apollo Hospital | Upcoming Appointment: Today 4:00 PM | Health Status: Stable</small>
         </div>
       </div>
 
       <div className="overview-info-card">
         <div>
-          <p className="eyebrow">What is HCP CRM?</p>
-          <h2>What is an HCP CRM?</h2>
+          <p className="eyebrow">Healthcare discovery</p>
+          <h2>Find care faster</h2>
         </div>
         <p>
-          An HCP CRM platform helps pharmaceutical, biotechnology, medical device, and healthcare organizations manage
-          relationships with healthcare professionals. It centralizes provider information, tracks interactions, improves
-          collaboration, supports compliance requirements, and enables more personalized engagement.
+          This platform helps people discover healthcare professionals, clinics, and hospitals nearby. It combines
+          provider search, appointment management, AI-assisted recommendations, directions, and health records while
+          preserving the existing appointment logging engine behind the scenes.
         </p>
       </div>
 

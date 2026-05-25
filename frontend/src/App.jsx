@@ -5,7 +5,9 @@ import { Provider } from "react-redux";
 
 import AdminDashboard from "./components/AdminDashboard";
 import AIChatPanel from "./components/AIChatPanel";
+import DiscoveryPage from "./components/DiscoveryPage";
 import HCPSelectionModal from "./components/HCPSelectionModal";
+import HealthRecordsPage from "./components/HealthRecordsPage";
 import HealthcareOverview from "./components/HealthcareOverview";
 import LoginPage from "./components/LoginPage";
 import LogInteractionForm from "./components/LogInteractionForm";
@@ -22,11 +24,11 @@ const readSelectedHcp = () => {
 };
 
 function AuthenticatedCRM({ onLogout }) {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activePage, setActivePage] = useState("home");
   const [selectedHcp, setSelectedHcp] = useState(readSelectedHcp);
   const [showHcpModal, setShowHcpModal] = useState(() => !readSelectedHcp());
 
-  const selectTab = (tab) => setActiveTab(tab);
+  const navigate = (page) => setActivePage(page);
 
   const handleHcpContinue = (hcp) => {
     setSelectedHcp(hcp);
@@ -43,19 +45,28 @@ function AuthenticatedCRM({ onLogout }) {
         <div className="brand-lockup">
           <span className="brand-mark">HC</span>
           <div>
-            <span className="brand-title">HCP CRM</span>
-            <span className="brand-subtitle">Interaction intelligence workspace</span>
+            <span className="brand-title">HealthConnect</span>
+            <span className="brand-subtitle">Healthcare discovery platform</span>
           </div>
         </div>
         <nav className="main-nav" aria-label="Primary">
-          <button type="button">Platform</button>
-          <button type="button">Solutions</button>
-          <button type="button">Industries</button>
-          <button type="button">Resources</button>
+          {[
+            ["home", "Home"],
+            ["doctors", "Find Doctors"],
+            ["clinics", "Clinics"],
+            ["hospitals", "Hospitals"],
+            ["appointments", "Appointments"],
+            ["assistant", "AI Assistant"],
+            ["records", "Health Records"],
+          ].map(([page, label]) => (
+            <button className={activePage === page ? "active" : ""} type="button" key={page} onClick={() => navigate(page)}>
+              {label}
+            </button>
+          ))}
         </nav>
         <div className="header-actions">
           <button className="secondary-button" type="button" onClick={() => setShowHcpModal(true)}>
-            {selectedHcp?.name || "Select HCP"}
+            {selectedHcp?.name || "Select Provider"}
           </button>
           <button type="button" onClick={onLogout}>
             Logout
@@ -63,20 +74,16 @@ function AuthenticatedCRM({ onLogout }) {
         </div>
       </div>
 
-      <div className="dashboard-tabs" role="tablist" aria-label="CRM dashboard sections">
-        <button className={activeTab === "overview" ? "active" : ""} type="button" onClick={() => selectTab("overview")}>
-          Overview
-        </button>
-        <button className={activeTab === "assistant" ? "active" : ""} type="button" onClick={() => selectTab("assistant")}>
-          AI Assistant
-        </button>
-      </div>
-
-      {activeTab === "overview" ? (
-        <HealthcareOverview selectedHcp={selectedHcp} onStartInteraction={() => selectTab("assistant")} />
-      ) : (
-        <main className="app-shell tab-view">
-          <LogInteractionForm selectedHcp={selectedHcp} />
+      {activePage === "home" && (
+        <HealthcareOverview selectedHcp={selectedHcp} onStartInteraction={() => navigate("appointments")} onNavigate={navigate} />
+      )}
+      {activePage === "doctors" && <DiscoveryPage type="doctors" />}
+      {activePage === "clinics" && <DiscoveryPage type="clinics" />}
+      {activePage === "hospitals" && <DiscoveryPage type="hospitals" />}
+      {activePage === "records" && <HealthRecordsPage />}
+      {(activePage === "appointments" || activePage === "assistant") && (
+        <main className={`app-shell tab-view ${activePage === "assistant" ? "assistant-only" : ""}`}>
+          {activePage === "appointments" && <LogInteractionForm selectedHcp={selectedHcp} />}
           <AIChatPanel selectedHcp={selectedHcp} />
         </main>
       )}

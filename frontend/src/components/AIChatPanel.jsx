@@ -78,15 +78,15 @@ function AIChatPanel({ selectedHcp }) {
       <header className="ai-header">
         <div>
           <p className="eyebrow">AI workspace</p>
-          <h2>AI Assistant</h2>
-          <p>Discuss the interaction, then let AI structure the record.</p>
+          <h2>Healthcare AI Assistant</h2>
+          <p>Find care, prepare for visits, and organize appointment notes.</p>
         </div>
         <div className={`processing-dot ${isLoading ? "active" : ""}`} aria-label={isLoading ? "AI processing" : "AI idle"} />
       </header>
 
       <div className="ai-workspace">
         <div className="chat-history compact">
-          <div className="message system">Example: Met Dr. Smith today, discussed Product X efficacy, shared brochures, and agreed to send trial data.</div>
+          <div className="message system">Example: I have persistent knee pain. Which specialist should I see and can you help me prepare an appointment note?</div>
           {messages.map((item, index) => (
             <div className={`message ${item.role}`} key={`${item.role}-${index}`}>{item.content}</div>
           ))}
@@ -95,7 +95,7 @@ function AIChatPanel({ selectedHcp }) {
 
         <div className="ai-card">
           <div className="ai-card-title">
-            <h3>AI Extracted Summary</h3>
+            <h3>AI Health Summary</h3>
             <span>{hasExtraction ? "Populated" : "Waiting for note"}</span>
           </div>
           <div className="summary-grid">
@@ -144,14 +144,14 @@ function AIChatPanel({ selectedHcp }) {
                 <button type="button" onClick={() => dispatch(setField({ field: "followup_actions", value: suggestion }))}>Accept</button>
               </div>
             ))}
-            {!form.ai_suggested_followups.length && <p className="muted">AI recommendations will appear after an interaction note is processed.</p>}
+            {!form.ai_suggested_followups.length && <p className="muted">AI recommendations will appear after an appointment note is processed.</p>}
           </div>
         </div>
 
         <div className="ai-card">
           <div className="ai-card-title">
-            <h3>Doctor Context</h3>
-            <span>CRM profile</span>
+            <h3>Provider Context</h3>
+            <span>Health profile</span>
           </div>
           <div className="doctor-card">
             <div className="doctor-avatar">{hcpContext.name ? hcpContext.name.slice(0, 2).toUpperCase() : "DR"}</div>
