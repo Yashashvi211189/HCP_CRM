@@ -1968,6 +1968,15 @@ button:hover {
   color: var(--text);
 }
 
+.map-config-alert {
+  border: 1px solid #facc15;
+  border-radius: 8px;
+  background: #fffbeb;
+  color: #854d0e;
+  font-weight: 800;
+  padding: 12px 14px;
+}
+
 .provider-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

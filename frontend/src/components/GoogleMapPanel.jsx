@@ -66,9 +66,7 @@ function GoogleMapPanel({ places = [], location, compact = false }) {
         <span>{apiKey ? "Map fallback" : "Add Maps API key"}</span>
         {visiblePlaces.length ? visiblePlaces.map((place, index) => (
           <div className={`map-marker marker-${index + 1}`} key={place.id || place.name}>{index + 1}</div>
-        )) : [1, 2, 3].map((index) => (
-          <div className={`map-marker marker-${index}`} key={index}>{index}</div>
-        ))}
+        )) : null}
       </div>
     );
   }

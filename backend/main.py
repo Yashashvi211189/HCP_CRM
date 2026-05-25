@@ -332,50 +332,14 @@ def serialize_user(user, db):
     }
 
 
-def _mock_places(query):
-    normalized = (query or "healthcare").lower()
-    place_sets = [
-        (["cardiologist", "cardiology"], "Cardiologist", ["Dr. Rohan Mehta", "Dr. Anika Rao", "Dr. Vivek Sinha"], "Heart Care Centre"),
-        (["dentist", "dental"], "Dentist", ["Dr. Kavya Menon", "Dr. Arjun Malhotra", "Dr. Sana Kapoor"], "Smile Dental Studio"),
-        (["pediatrician", "paediatrician", "child"], "Pediatrician", ["Dr. Neha Iyer", "Dr. Sameer Bhat", "Dr. Priya Kulkarni"], "Little Care Clinic"),
-        (["orthopedic", "orthopaedic", "ortho"], "Orthopedic Doctor", ["Dr. Karan Shah", "Dr. Meera Joshi", "Dr. Aditya Nair"], "Bone & Joint Centre"),
-        (["dermatologist", "skin"], "Dermatologist", ["Dr. Riya Sen", "Dr. Nikhil Bansal", "Dr. Aisha Thomas"], "Skin Health Clinic"),
-        (["general physician", "physician", "doctor"], "General Physician", ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"], "Family Health Clinic"),
-        (["hospital", "emergency"], "Hospital", ["Apollo Hospital", "Fortis Hospital", "Max Super Speciality Hospital"], "Multi-speciality Hospital"),
-        (["clinic", "medical clinic"], "Clinic", ["Apollo Clinic", "CityCare Medical Clinic", "HealthFirst Clinic"], "Primary Care Clinic"),
-    ]
-    category = "Doctor"
-    names = ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"]
-    facility = "Healthcare Avenue"
-    for tokens, matched_category, matched_names, matched_facility in place_sets:
-        if any(token in normalized for token in tokens):
-            category = matched_category
-            names = matched_names
-            facility = matched_facility
-            break
-    return [
-        {
-            "id": f"mock-{category.lower().replace(' ', '-')}-{index}",
-            "name": name,
-            "category": category,
-            "rating": round(4.7 - (index * 0.2), 1),
-            "address": f"{index + 1} {facility}, Bengaluru",
-            "distance": f"{1.2 + index:.1f} km",
-            "phone": "+91 98765 43210",
-            "open_now": index != 2,
-            "availability": "Today 4:00 PM" if index == 0 else "Tomorrow 10:00 AM",
-            "latitude": 12.9716 + (index * 0.01),
-            "longitude": 77.5946 + (index * 0.01),
-            "directions_url": f"https://www.google.com/maps/search/?api=1&query={name.replace(' ', '+')}",
-        }
-        for index, name in enumerate(names)
-    ]
-
-
 def _google_places_search(payload: PlacesSearchRequest):
     api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
     if not api_key:
-        return {"source": "mock", "results": _mock_places(payload.query)}
+        return {
+            "source": "configuration_required",
+            "results": [],
+            "message": "Google Places is not configured. Set GOOGLE_MAPS_API_KEY on the backend service.",
+        }
 
     params = {
         "query": payload.query,
@@ -390,8 +354,12 @@ def _google_places_search(payload: PlacesSearchRequest):
     try:
         with request.urlopen(url, timeout=8) as response:
             data = json.loads(response.read().decode("utf-8"))
-    except Exception:
-        return {"source": "mock", "results": _mock_places(payload.query)}
+    except Exception as exc:
+        return {
+            "source": "google_error",
+            "results": [],
+            "message": f"Google Places request failed: {exc}",
+        }
 
     results = []
     for place in data.get("results", [])[:12]:

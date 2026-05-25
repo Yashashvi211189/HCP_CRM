@@ -32,11 +32,13 @@ const reasons = [
 function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
   const [locationStatus, setLocationStatus] = useState("Requesting location permission...");
   const [coordinates, setCoordinates] = useState(null);
+  const hasMapsKey = Boolean(process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
   const homePlaces = useMemo(() => [
     { id: "home-1", name: "Apollo Hospital", latitude: coordinates?.latitude || 28.6139, longitude: coordinates?.longitude || 77.209 },
     { id: "home-2", name: "CityCare Medical Clinic", latitude: coordinates ? Number(coordinates.latitude) + 0.01 : 28.6239, longitude: coordinates ? Number(coordinates.longitude) + 0.01 : 77.219 },
     { id: "home-3", name: "Dr. Smith Clinic", latitude: coordinates ? Number(coordinates.latitude) - 0.01 : 28.6039, longitude: coordinates ? Number(coordinates.longitude) - 0.01 : 77.199 },
   ], [coordinates]);
+  const visibleHomePlaces = hasMapsKey ? homePlaces : [];
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -74,7 +76,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
           <span>Your Healthcare Dashboard</span>
           <strong>{selectedHcp?.name || "Healthcare profile"}</strong>
           <p>Current Location: {coordinates ? `${coordinates.latitude}, ${coordinates.longitude}` : locationStatus}</p>
-          <small>Nearest Hospital: Apollo Hospital | Upcoming Appointment: Today 4:00 PM | Health Status: Stable</small>
+          <small>{hasMapsKey ? "Nearby care search is live through Google Maps." : "Add Google Maps API keys to enable live nearby care search."}</small>
         </div>
       </div>
 
@@ -84,7 +86,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
           <h2>Doctors, clinics, and hospitals around you</h2>
           <p>Location powers nearby discovery. If browser permission is blocked, use city or specialty search from the discovery pages.</p>
         </div>
-        <GoogleMapPanel places={homePlaces} location={coordinates} compact />
+        <GoogleMapPanel places={visibleHomePlaces} location={coordinates} compact />
       </div>
 
       <div className="overview-info-card">

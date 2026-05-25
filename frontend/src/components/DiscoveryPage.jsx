@@ -43,7 +43,8 @@ function DiscoveryPage({ type = "doctors" }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("list");
-  const [source, setSource] = useState("mock");
+  const [source, setSource] = useState("configuration_required");
+  const [statusMessage, setStatusMessage] = useState("");
 
   const markerSummary = useMemo(() => results.slice(0, 6), [results]);
 
@@ -74,7 +75,8 @@ function DiscoveryPage({ type = "doctors" }) {
           radius: 6000,
         });
         setResults(response.data.results || []);
-        setSource(response.data.source || "mock");
+        setSource(response.data.source || "configuration_required");
+        setStatusMessage(response.data.message || "");
       }
     } catch (error) {
       try {
@@ -85,10 +87,12 @@ function DiscoveryPage({ type = "doctors" }) {
           radius: 6000,
         });
         setResults(response.data.results || []);
-        setSource(response.data.source || "mock");
+        setSource(response.data.source || "configuration_required");
+        setStatusMessage(response.data.message || "");
       } catch {
         setResults([]);
         setSource("offline");
+        setStatusMessage("Provider search is unavailable. Check Google Maps configuration and backend connectivity.");
       }
     } finally {
       setLoading(false);
@@ -142,8 +146,9 @@ function DiscoveryPage({ type = "doctors" }) {
         <div className={`result-list ${view === "map" ? "compact-results" : ""}`}>
           <div className="result-meta">
             <strong>{loading ? "Searching nearby providers" : `${results.length} results found`}</strong>
-            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Specialty-specific demo results until Google Maps API key is configured"}</span>
+            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Google Maps configuration required"}</span>
           </div>
+          {statusMessage && <div className="map-config-alert">{statusMessage}</div>}
           {results.map((place) => (
             <article className="provider-card" key={place.id || place.name}>
               <div>
@@ -164,7 +169,7 @@ function DiscoveryPage({ type = "doctors" }) {
               </div>
             </article>
           ))}
-          {!loading && !results.length && <div className="empty-state">No nearby providers found. Try another location or speciality.</div>}
+          {!loading && !results.length && <div className="empty-state">No live providers found. Configure Google Maps API keys or try another search.</div>}
         </div>
 
         <aside className="map-panel">
