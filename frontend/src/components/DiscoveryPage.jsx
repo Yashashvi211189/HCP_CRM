@@ -142,7 +142,7 @@ function DiscoveryPage({ type = "doctors" }) {
         <div className={`result-list ${view === "map" ? "compact-results" : ""}`}>
           <div className="result-meta">
             <strong>{loading ? "Searching nearby providers" : `${results.length} results found`}</strong>
-            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Demo results until Google Maps API key is configured"}</span>
+            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Specialty-specific demo results until Google Maps API key is configured"}</span>
           </div>
           {results.map((place) => (
             <article className="provider-card" key={place.id || place.name}>

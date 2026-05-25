@@ -334,22 +334,32 @@ def serialize_user(user, db):
 
 def _mock_places(query):
     normalized = (query or "healthcare").lower()
-    if "hospital" in normalized:
-        names = ["Apollo Hospital", "Fortis Hospital", "Max Super Speciality Hospital"]
-        category = "Hospital"
-    elif "clinic" in normalized:
-        names = ["Apollo Clinic", "CityCare Medical Clinic", "HealthFirst Clinic"]
-        category = "Clinic"
-    else:
-        names = ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"]
-        category = "Doctor"
+    place_sets = [
+        (["cardiologist", "cardiology"], "Cardiologist", ["Dr. Rohan Mehta", "Dr. Anika Rao", "Dr. Vivek Sinha"], "Heart Care Centre"),
+        (["dentist", "dental"], "Dentist", ["Dr. Kavya Menon", "Dr. Arjun Malhotra", "Dr. Sana Kapoor"], "Smile Dental Studio"),
+        (["pediatrician", "paediatrician", "child"], "Pediatrician", ["Dr. Neha Iyer", "Dr. Sameer Bhat", "Dr. Priya Kulkarni"], "Little Care Clinic"),
+        (["orthopedic", "orthopaedic", "ortho"], "Orthopedic Doctor", ["Dr. Karan Shah", "Dr. Meera Joshi", "Dr. Aditya Nair"], "Bone & Joint Centre"),
+        (["dermatologist", "skin"], "Dermatologist", ["Dr. Riya Sen", "Dr. Nikhil Bansal", "Dr. Aisha Thomas"], "Skin Health Clinic"),
+        (["general physician", "physician", "doctor"], "General Physician", ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"], "Family Health Clinic"),
+        (["hospital", "emergency"], "Hospital", ["Apollo Hospital", "Fortis Hospital", "Max Super Speciality Hospital"], "Multi-speciality Hospital"),
+        (["clinic", "medical clinic"], "Clinic", ["Apollo Clinic", "CityCare Medical Clinic", "HealthFirst Clinic"], "Primary Care Clinic"),
+    ]
+    category = "Doctor"
+    names = ["Dr. Ananya Sharma", "Dr. Rajiv Mehta", "Dr. Priya Nair"]
+    facility = "Healthcare Avenue"
+    for tokens, matched_category, matched_names, matched_facility in place_sets:
+        if any(token in normalized for token in tokens):
+            category = matched_category
+            names = matched_names
+            facility = matched_facility
+            break
     return [
         {
-            "id": f"mock-{index}",
+            "id": f"mock-{category.lower().replace(' ', '-')}-{index}",
             "name": name,
             "category": category,
             "rating": round(4.7 - (index * 0.2), 1),
-            "address": f"{index + 1} Healthcare Avenue, Bengaluru",
+            "address": f"{index + 1} {facility}, Bengaluru",
             "distance": f"{1.2 + index:.1f} km",
             "phone": "+91 98765 43210",
             "open_now": index != 2,
