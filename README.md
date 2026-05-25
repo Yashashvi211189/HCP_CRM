@@ -14,17 +14,18 @@ Repository: [https://github.com/Yashashvi211189/HCP_CRM](https://github.com/Yash
 
 HCP CRM combines three workflows in one application:
 
-- **Healthcare discovery:** 
+- **Healthcare discovery:** find nearby doctors, clinics, hospitals, dentists, pharmacies, and healthcare locations using OpenStreetMap and Overpass.
+
 <img width="959" height="425" alt="image" src="https://github.com/user-attachments/assets/7fc1c757-966b-4524-8363-b880c10f3c6f" />
-find nearby doctors, clinics, hospitals, dentists, pharmacies, and healthcare locations using OpenStreetMap and Overpass.
 
-- **Interaction logging:** 
+
+- **Interaction logging:** Capture HCP meetings, calls, topics, materials, samples, sentiment, outcomes, and follow-up actions.
 <img width="940" height="429" alt="image" src="https://github.com/user-attachments/assets/14ba80aa-312d-471d-8b2c-2c767c053bb5" />
-capture HCP meetings, calls, topics, materials, samples, sentiment, outcomes, and follow-up actions.
 
-- **AI Workspace:**
+
+- **AI Workspace:**convert natural language notes into structured CRM data with summaries, recommendations, confidence indicators, and doctor context.
 - <img width="538" height="389" alt="image" src="https://github.com/user-attachments/assets/be2cfd4a-61a9-4991-8373-951b649072d3" />
-convert natural language notes into structured CRM data with summaries, recommendations, confidence indicators, and doctor context.
+
 
 Example interaction note:
 
