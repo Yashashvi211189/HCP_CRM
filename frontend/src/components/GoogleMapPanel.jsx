@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 let mapsLoaderPromise;
 
@@ -37,7 +37,7 @@ function GoogleMapPanel({ places = [], location, compact = false }) {
   const markers = useRef([]);
   const [loadState, setLoadState] = useState("idle");
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "";
-  const visiblePlaces = places.slice(0, 6);
+  const visiblePlaces = useMemo(() => places.slice(0, 6), [places]);
 
   useEffect(() => {
     if (!apiKey || !mapRef.current) return;

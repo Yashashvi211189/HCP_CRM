@@ -132,11 +132,17 @@ def send_provider_notification(interaction_data, hcp=None):
 
     host = os.getenv("SMTP_HOST", "")
     if not host or not recipient:
+        if os.getenv("N8N_WEBHOOK_URL"):
+            message = "Notification workflow triggered."
+        elif not recipient:
+            message = "Saved. Add an HCP email or DEFAULT_PROVIDER_NOTIFICATION_EMAIL to send provider notifications."
+        else:
+            message = "Saved. Configure SMTP settings to send provider notification emails."
         return {
             "sent": False,
             "channel": "n8n" if os.getenv("N8N_WEBHOOK_URL") else "none",
             "recipient": recipient,
-            "message": "Notification queued for workflow or skipped because SMTP recipient is not configured.",
+            "message": message,
         }
 
     message = EmailMessage()

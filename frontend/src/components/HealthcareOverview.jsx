@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import GoogleMapPanel from "./GoogleMapPanel";
 
@@ -32,11 +32,11 @@ const reasons = [
 function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
   const [locationStatus, setLocationStatus] = useState("Requesting location permission...");
   const [coordinates, setCoordinates] = useState(null);
-  const homePlaces = [
+  const homePlaces = useMemo(() => [
     { id: "home-1", name: "Apollo Hospital", latitude: coordinates?.latitude || 28.6139, longitude: coordinates?.longitude || 77.209 },
     { id: "home-2", name: "CityCare Medical Clinic", latitude: coordinates ? Number(coordinates.latitude) + 0.01 : 28.6239, longitude: coordinates ? Number(coordinates.longitude) + 0.01 : 77.219 },
     { id: "home-3", name: "Dr. Smith Clinic", latitude: coordinates ? Number(coordinates.latitude) - 0.01 : 28.6039, longitude: coordinates ? Number(coordinates.longitude) - 0.01 : 77.199 },
-  ];
+  ], [coordinates]);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -147,7 +147,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
         <div className="reason-grid">
           {reasons.map((reason) => (
             <div className="reason-card" key={reason}>
-              <span>✓</span>
+              <span>OK</span>
               {reason}
             </div>
           ))}
