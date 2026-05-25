@@ -2189,3 +2189,95 @@ button:hover {
     min-width: 0;
   }
 }
+
+/* AI-first CRM workspace emphasis */
+.app-shell.tab-view {
+  grid-template-columns: minmax(360px, 0.78fr) minmax(520px, 1.22fr);
+}
+
+.chat-panel {
+  border: 1px solid #bfdbfe;
+  box-shadow: 0 20px 52px rgba(29, 78, 216, 0.14);
+}
+
+.ai-header {
+  padding: 26px 30px;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.ai-header h2 {
+  font-size: 30px;
+}
+
+.ai-header-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ai-header-status span {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.ai-command-center {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.55fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 16px;
+}
+
+.ai-command-center h3 {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.quick-prompt-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-prompt-row button {
+  width: auto;
+  height: auto;
+  min-height: 34px;
+  border-color: #bfdbfe;
+  background: #ffffff;
+  color: var(--primary);
+  padding: 7px 10px;
+  text-align: left;
+}
+
+.quick-prompt-row button:hover {
+  background: #eff6ff;
+  color: var(--primary-dark);
+}
+
+.chat-input textarea {
+  min-height: 68px;
+}
+
+@media (max-width: 1100px) {
+  .app-shell.tab-view {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .ai-command-center,
+  .ai-header-status {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+}

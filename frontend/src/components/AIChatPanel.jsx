@@ -6,6 +6,26 @@ import { addMessage, setError, setLoading } from "../store/chatSlice";
 import { populateFromAI, setField, setSuggestions } from "../store/interactionSlice";
 
 const productPattern = /\bProduct\s+[A-Z0-9]+\b/gi;
+const hcpProfiles = {
+  "dr. smith": {
+    specialty: "Cardiology",
+    organization: "CityCare Medical Clinic",
+    previousInteractions: "4 CRM interactions",
+    lastInteraction: "Product X efficacy discussion",
+  },
+  "dr. yoyo": {
+    specialty: "General Medicine",
+    organization: "Metro Health Clinic",
+    previousInteractions: "2 CRM interactions",
+    lastInteraction: "Follow-up planning call",
+  },
+};
+
+const quickPrompts = [
+  "Log meeting with Dr. Smith about Product X efficacy",
+  "Suggest follow-up actions for a positive HCP interaction",
+  "Extract CRM fields from my visit note",
+];
 
 function extractProducts(text) {
   const matches = (text || "").match(productPattern) || [];
@@ -23,12 +43,14 @@ function AIChatPanel({ selectedHcp }) {
   const [message, setMessage] = useState("");
 
   const products = useMemo(() => extractProducts(`${form.topics_discussed} ${form.raw_chat_input || ""}`), [form.topics_discussed, form.raw_chat_input]);
+  const hcpName = form.hcp_name || selectedHcp?.name || "";
+  const inferredProfile = hcpProfiles[hcpName.trim().toLowerCase()] || {};
   const hcpContext = {
-    name: form.hcp_name || selectedHcp?.name || "",
-    specialty: selectedHcp?.specialty || "Not available",
-    organization: selectedHcp?.organization || "Not available",
-    previousInteractions: selectedHcp?.previousInteractions || "Not available",
-    lastInteraction: selectedHcp?.lastInteraction || "Not available",
+    name: hcpName,
+    specialty: selectedHcp?.specialty || inferredProfile.specialty || "Profile pending",
+    organization: selectedHcp?.organization || inferredProfile.organization || "Profile pending",
+    previousInteractions: selectedHcp?.previousInteractions || inferredProfile.previousInteractions || "No prior CRM history",
+    lastInteraction: selectedHcp?.lastInteraction || inferredProfile.lastInteraction || "No previous interaction recorded",
   };
   const hasExtraction = Boolean(form.hcp_name || form.topics_discussed || form.materials_shared || form.outcomes || form.ai_suggested_followups.length);
 
@@ -81,10 +103,27 @@ function AIChatPanel({ selectedHcp }) {
           <h2>HCP CRM AI Assistant</h2>
           <p>Log interaction details, extract CRM fields, and suggest follow-ups.</p>
         </div>
-        <div className={`processing-dot ${isLoading ? "active" : ""}`} aria-label={isLoading ? "AI processing" : "AI idle"} />
+        <div className="ai-header-status">
+          <span>{isLoading ? "Analyzing note" : "Primary workspace"}</span>
+          <div className={`processing-dot ${isLoading ? "active" : ""}`} aria-label={isLoading ? "AI processing" : "AI idle"} />
+        </div>
       </header>
 
       <div className="ai-workspace">
+        <div className="ai-command-center">
+          <div>
+            <p className="eyebrow">Command center</p>
+            <h3>Start with AI, then review the CRM record</h3>
+          </div>
+          <div className="quick-prompt-row">
+            {quickPrompts.map((prompt) => (
+              <button type="button" key={prompt} onClick={() => setMessage(prompt)}>
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="chat-history compact">
           <div className="message system">Example: Today I met with Dr. Smith, discussed Product X efficacy, positive sentiment, and shared brochures.</div>
           {messages.map((item, index) => (
