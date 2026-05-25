@@ -2,6 +2,10 @@
 
 A full-stack, AI-first CRM module for capturing Healthcare Professional (HCP) interactions through natural language, structured review, and intelligent follow-up recommendations.
 
+Live App: [https://hcp-crm-rgft.onrender.com/](https://hcp-crm-rgft.onrender.com/)
+Backend Swagger: [https://hcp-crm-back.onrender.com/docs](https://hcp-crm-back.onrender.com/docs)
+Repository: [https://github.com/Yashashvi211189/HCP_CRM](https://github.com/Yashashvi211189/HCP_CRM)
+
 This project helps pharmaceutical sales representatives, medical representatives, account managers, and field teams convert unstructured meeting notes into clean CRM records with minimal manual entry.
 
 ## Overview
@@ -24,8 +28,9 @@ The AI agent extracts the important CRM fields, populates the interaction form, 
 - LangGraph-based backend agent with dedicated tools
 - Groq LLM integration using `gemma2-9b-it`
 - Structured HCP interaction form with auto-population from AI
-- AI chat panel for logging interaction details conversationally
-- Smart follow-up suggestions based on topics and sentiment
+- AI workspace with extracted summary, confidence indicators, doctor context, and processing status
+- Smart follow-up action cards with priority, due date, and one-click accept
+- Modern card-based form layout with collapsible metadata fields
 - Voice-note summarization flow using browser speech recognition
 - Temporary OTP login for local demo access
 - Admin dashboard for user activity and submitted interaction visibility
@@ -211,6 +216,14 @@ Backend docs:
 http://127.0.0.1:8000/docs
 ```
 
+Swagger UI is available at the same URL and can be used to inspect and test every FastAPI route.
+
+Alternative OpenAPI docs:
+
+```text
+http://127.0.0.1:8000/redoc
+```
+
 ### 4. Set Up Frontend
 
 Open a second terminal:
@@ -229,64 +242,90 @@ http://localhost:3000
 
 ## Live Deployment
 
-This repository is configured for a practical hosted setup:
+Use three separate hosted pieces:
 
-- Frontend: GitHub Pages
-- Backend: Render Web Service
-- Database: Hosted MySQL, such as Railway MySQL, Aiven MySQL, PlanetScale, or any MySQL-compatible provider
+| Part | Host | Purpose |
+| --- | --- | --- |
+| Frontend | Render Static Site or GitHub Pages | React app |
+| Backend | Render Web Service | FastAPI API and Swagger |
+| Database | Hosted MySQL | Permanent CRM records |
 
-GitHub Pages can host the React frontend, but it cannot run FastAPI or MySQL. The backend and database must be deployed separately.
+Do not use `localhost` in production. Do not leave placeholders such as `USER`, `PASSWORD`, `HOST`, or `PORT` in Render environment variables.
 
-### 1. Deploy the Backend on Render
+### 1. Create Hosted MySQL First
 
-The repository includes `render.yaml`, which defines the FastAPI web service.
+Create a MySQL database on a host such as Railway, Aiven, Clever Cloud, or another MySQL provider.
 
-In Render:
-
-1. Create a new Blueprint or Web Service from this GitHub repository.
-2. Use the backend service settings from `render.yaml`.
-3. Add the required environment variables:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:PORT/hcp_crm
-ADMIN_PASSWORD=your_secure_admin_password
-JWT_SECRET=your_secure_jwt_secret
-```
-
-The backend start command is:
-
-```text
-uvicorn main:app --host 0.0.0.0 --port $PORT
-```
-
-After deployment, Render will give you a backend URL similar to:
-
-```text
-https://hcp-crm-api.onrender.com
-```
-
-### 2. Configure Hosted MySQL
-
-Create a hosted MySQL database and run:
-
-```sql
-CREATE DATABASE IF NOT EXISTS hcp_crm;
-```
-
-Then apply the schema from:
+Then run the project schema file against that hosted database:
 
 ```text
 sql/schema.sql
 ```
 
-The final `DATABASE_URL` should look like:
+You can paste the file contents into your provider's SQL console, or run it with the MySQL CLI:
+
+```bash
+mysql -h YOUR_DB_HOST -P 3306 -u YOUR_DB_USER -p hcp_crm < sql/schema.sql
+```
+
+Your hosted MySQL URL must use real values and a numeric port:
+
+```env
+DATABASE_URL=mysql+pymysql://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:3306/hcp_crm
+```
+
+Wrong:
 
 ```env
 DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:PORT/hcp_crm
 ```
 
-### 3. Configure GitHub Pages
+### 2. Deploy Backend on Render
+
+Create a Render **Web Service** for the backend. Do not deploy the backend as a Static Site.
+
+Backend settings:
+
+```text
+Root Directory: backend
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+Backend environment variables:
+
+```env
+DATABASE_URL=mysql+pymysql://YOUR_DB_USER:YOUR_DB_PASSWORD@YOUR_DB_HOST:3306/hcp_crm
+GROQ_API_KEY=your_real_groq_key
+JWT_SECRET=hcp_crm_secure_secret_2026
+ADMIN_PASSWORD=admin123
+PYTHON_VERSION=3.11.9
+```
+
+After deploy, test:
+
+```text
+https://your-backend-service.onrender.com/
+https://your-backend-service.onrender.com/docs
+```
+
+### 3. Deploy Frontend
+
+If using Render Static Site:
+
+```text
+Root Directory: frontend
+Build Command: npm install && npm run build
+Publish Directory: build
+```
+
+Frontend environment variable:
+
+```env
+REACT_APP_API_URL=https://your-backend-service.onrender.com
+```
+
+If using GitHub Pages:
 
 The repository includes `.github/workflows/pages.yml`.
 
@@ -305,7 +344,7 @@ REACT_APP_API_URL
 Value:
 
 ```text
-https://your-render-backend-url.onrender.com
+https://your-backend-service.onrender.com
 ```
 
 Then enable GitHub Pages:
@@ -320,21 +359,27 @@ After the workflow runs, the frontend will be available at:
 https://Yashashvi211189.github.io/HCP_CRM/
 ```
 
-### 4. Frontend API Configuration
+### 4. Swagger UI
 
-The React app reads the backend URL from:
-
-```env
-REACT_APP_API_URL
-```
-
-For local development, it falls back to:
+Local Swagger:
 
 ```text
-http://127.0.0.1:8000
+http://127.0.0.1:8000/docs
 ```
 
-For production, set `REACT_APP_API_URL` to the deployed Render backend URL.
+Production Swagger:
+
+```text
+https://your-backend-service.onrender.com/docs
+```
+
+Use Swagger UI to verify:
+
+- `/` health check returns service status
+- `/auth/send-otp` returns the demo OTP flow
+- `/auth/verify-otp` returns an authorization token
+- `/api/chat` returns AI extracted data and suggestions
+- `/api/interactions` writes records to MySQL
 
 ## Login
 
@@ -353,6 +398,25 @@ admin123
 Both can be changed in backend configuration.
 
 ## API Endpoints
+
+FastAPI automatically exposes interactive Swagger documentation:
+
+```text
+Local:      http://127.0.0.1:8000/docs
+Production: https://your-render-backend-url.onrender.com/docs
+```
+
+Most CRM routes require a bearer token. Log in through `/auth/verify-otp`, copy the returned token, click `Authorize` in Swagger UI, and enter:
+
+```text
+Bearer YOUR_TOKEN_HERE
+```
+
+### Health Check
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/` | Confirms the FastAPI service is running |
 
 ### Authentication
 
@@ -386,7 +450,7 @@ Both can be changed in backend configuration.
 2. Type a natural interaction note in the AI Assistant panel.
 3. The AI extracts structured data.
 4. The left form updates automatically.
-5. AI follow-up recommendations appear.
+5. The AI workspace shows summary, confidence indicators, doctor context, and follow-up cards.
 6. Click Save.
 7. The record is stored in MySQL under `hcp_crm.interactions`.
 8. Admin can view user activity and submitted interaction content.
