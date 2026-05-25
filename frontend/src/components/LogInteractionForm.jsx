@@ -95,7 +95,18 @@ function LogInteractionForm({ selectedHcp }) {
           <h1>Log HCP Interaction</h1>
           {selectedHcp && <p className="selected-context">Workspace: {selectedHcp.name} | {selectedHcp.specialty}</p>}
         </div>
-        <div className={`ai-state-pill ${isLoading ? "thinking" : ""}`}>{isLoading ? "AI extracting" : "Ready"}</div>
+        <div className="form-hero-actions">
+          <span className="record-required-pill">CRM record</span>
+          <div className={`ai-state-pill ${isLoading ? "thinking" : ""}`}>{isLoading ? "AI extracting" : "Ready"}</div>
+        </div>
+      </div>
+
+      <div className="interaction-focus-banner">
+        <div>
+          <span>1</span>
+          <strong>Review the interaction details here before saving</strong>
+        </div>
+        <p>AI can populate this CRM record, but this section is the final source of truth for saved HCP interactions.</p>
       </div>
 
       <FormCard title="Interaction Details" description="Core CRM fields used for routing, history, compliance, and follow-up.">

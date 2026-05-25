@@ -2293,6 +2293,83 @@ button:hover {
   min-height: 68px;
 }
 
+.form-panel {
+  border: 2px solid #93c5fd;
+  box-shadow: 0 20px 48px rgba(37, 99, 235, 0.12);
+}
+
+.form-hero {
+  margin: -22px -22px 0;
+  border-bottom: 1px solid #bfdbfe;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 78%);
+  padding: 24px 26px;
+}
+
+.form-hero h1 {
+  font-size: 34px;
+}
+
+.form-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.record-required-pill {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 11px;
+  text-transform: uppercase;
+}
+
+.interaction-focus-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 14px 16px;
+}
+
+.interaction-focus-banner div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.interaction-focus-banner span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.interaction-focus-banner strong {
+  color: var(--text);
+}
+
+.interaction-focus-banner p {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.form-card:first-of-type {
+  border-color: #93c5fd;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.08);
+}
+
 @media (max-width: 1100px) {
   .app-shell.tab-view {
     grid-template-columns: 1fr;
@@ -2301,8 +2378,13 @@ button:hover {
 
 @media (max-width: 620px) {
   .ai-command-center,
-  .ai-header-status {
+  .ai-header-status,
+  .form-hero-actions {
     grid-template-columns: 1fr;
     align-items: flex-start;
+  }
+
+  .form-hero {
+    margin: -22px -22px 0;
   }
 }
