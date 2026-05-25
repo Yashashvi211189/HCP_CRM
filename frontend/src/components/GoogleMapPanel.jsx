@@ -1,24 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-let mapsLoaderPromise;
-
-function loadGoogleMaps(apiKey) {
-  if (!apiKey) return Promise.reject(new Error("Missing Google Maps API key"));
-  if (window.google?.maps) return Promise.resolve(window.google.maps);
-  if (mapsLoaderPromise) return mapsLoaderPromise;
-
-  mapsLoaderPromise = new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker,places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => resolve(window.google.maps);
-    script.onerror = () => reject(new Error("Google Maps failed to load"));
-    document.head.appendChild(script);
-  });
-
-  return mapsLoaderPromise;
-}
+import { loadGoogleMaps } from "../utils/googlePlacesSearch";
 
 function fallbackCenter(location, places) {
   const firstPlace = places.find((place) => place.latitude && place.longitude);

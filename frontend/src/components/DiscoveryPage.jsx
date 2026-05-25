@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import GoogleMapPanel from "./GoogleMapPanel";
 import { searchPlaces } from "../hooks/api";
+import { searchNearbyWithGoogle, searchPlacesWithGoogle } from "../utils/googlePlacesSearch";
 
 const doctorSpecialties = ["Cardiologist", "Dentist", "Pediatrician", "Orthopedic Doctor", "Dermatologist", "General Physician"];
 
@@ -13,6 +14,7 @@ const defaults = {
     query: "doctor near me",
     filters: doctorSpecialties,
     cta: "Book Appointment",
+    googleType: "doctor",
   },
   clinics: {
     eyebrow: "Clinics",
@@ -21,6 +23,7 @@ const defaults = {
     query: "medical clinic near me",
     filters: ["Medical Clinic", "Dental Clinic", "Diagnostics", "Open Now"],
     cta: "Book Visit",
+    googleType: "medical_clinic",
   },
   hospitals: {
     eyebrow: "Hospitals",
@@ -29,6 +32,7 @@ const defaults = {
     query: "hospital near me",
     filters: ["Emergency", "Multi-speciality", "Open Now", "Highest Rated"],
     cta: "Book Consultation",
+    googleType: "hospital",
   },
 };
 
@@ -46,17 +50,46 @@ function DiscoveryPage({ type = "doctors" }) {
   const runSearch = async (nextQuery = query, nextLocation = location) => {
     setLoading(true);
     try {
-      const response = await searchPlaces({
-        query: nextQuery,
-        latitude: nextLocation?.latitude,
-        longitude: nextLocation?.longitude,
-        radius: 6000,
-      });
-      setResults(response.data.results || []);
-      setSource(response.data.source || "mock");
+      if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
+        const normalizedQuery = (nextQuery || "").toLowerCase();
+        const places = normalizedQuery.includes("near me") && nextLocation
+          ? await searchNearbyWithGoogle({
+            location: nextLocation,
+            includedPrimaryType: config.googleType,
+            maxResultCount: 5,
+          })
+          : await searchPlacesWithGoogle({
+            query: nextQuery,
+            location: nextLocation,
+            includedType: "",
+            maxResultCount: 8,
+          });
+        setResults(places);
+        setSource("google-js");
+      } else {
+        const response = await searchPlaces({
+          query: nextQuery,
+          latitude: nextLocation?.latitude,
+          longitude: nextLocation?.longitude,
+          radius: 6000,
+        });
+        setResults(response.data.results || []);
+        setSource(response.data.source || "mock");
+      }
     } catch (error) {
-      setResults([]);
-      setSource("offline");
+      try {
+        const response = await searchPlaces({
+          query: nextQuery,
+          latitude: nextLocation?.latitude,
+          longitude: nextLocation?.longitude,
+          radius: 6000,
+        });
+        setResults(response.data.results || []);
+        setSource(response.data.source || "mock");
+      } catch {
+        setResults([]);
+        setSource("offline");
+      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +142,7 @@ function DiscoveryPage({ type = "doctors" }) {
         <div className={`result-list ${view === "map" ? "compact-results" : ""}`}>
           <div className="result-meta">
             <strong>{loading ? "Searching nearby providers" : `${results.length} results found`}</strong>
-            <span>{source === "google" ? "Live Google Places results" : "Demo results until Google Maps API key is configured"}</span>
+            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Demo results until Google Maps API key is configured"}</span>
           </div>
           {results.map((place) => (
             <article className="provider-card" key={place.id || place.name}>
