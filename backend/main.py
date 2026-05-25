@@ -239,6 +239,97 @@ class InteractionPatch(BaseModel):
     new_value: str
 
 
+def overpass_category_query(category: str, lat: float, lon: float, radius: int) -> str:
+    category_filters = {
+        "doctors": [
+            'node["amenity"="doctors"]',
+            'way["amenity"="doctors"]',
+            'relation["amenity"="doctors"]',
+            'node["amenity"="dentist"]',
+            'way["amenity"="dentist"]',
+            'relation["amenity"="dentist"]',
+            'node["healthcare"="doctor"]',
+            'way["healthcare"="doctor"]',
+            'relation["healthcare"="doctor"]',
+        ],
+        "clinics": [
+            'node["amenity"="clinic"]',
+            'way["amenity"="clinic"]',
+            'relation["amenity"="clinic"]',
+            'node["healthcare"="clinic"]',
+            'way["healthcare"="clinic"]',
+            'relation["healthcare"="clinic"]',
+        ],
+        "hospitals": [
+            'node["amenity"="hospital"]',
+            'way["amenity"="hospital"]',
+            'relation["amenity"="hospital"]',
+            'node["healthcare"="hospital"]',
+            'way["healthcare"="hospital"]',
+            'relation["healthcare"="hospital"]',
+        ],
+        "all": [
+            'node["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]',
+            'way["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]',
+            'relation["amenity"~"^(hospital|clinic|doctors|dentist|pharmacy)$"]',
+            'node["healthcare"]',
+            'way["healthcare"]',
+            'relation["healthcare"]',
+        ],
+    }
+    filters = category_filters.get(category, category_filters["all"])
+    clauses = "\n".join(f"  {item}(around:{radius},{lat},{lon});" for item in filters)
+    return f"""
+[out:json][timeout:20];
+(
+{clauses}
+);
+out center tags;
+"""
+
+
+def normalize_overpass_element(element):
+    tags = element.get("tags") or {}
+    center = element.get("center") or {}
+    lat = element.get("lat") or center.get("lat")
+    lon = element.get("lon") or center.get("lon")
+    if lat is None or lon is None:
+        return None
+
+    osm_type = tags.get("healthcare") or tags.get("amenity") or "healthcare"
+    if osm_type == "hospital":
+        category = "hospital"
+    elif osm_type == "clinic":
+        category = "clinic"
+    elif osm_type in ("doctors", "doctor", "dentist"):
+        category = "doctor"
+    else:
+        category = osm_type
+
+    address = ", ".join(
+        value for value in [
+            tags.get("addr:housenumber"),
+            tags.get("addr:street"),
+            tags.get("addr:city"),
+            tags.get("addr:state"),
+        ] if value
+    )
+    return {
+        "id": f"osm-{element.get('type', 'node')}-{element.get('id')}",
+        "name": tags.get("name") or tags.get("operator") or "Unnamed healthcare location",
+        "type": category,
+        "typeLabel": category.replace("_", " ").title(),
+        "category": category,
+        "specialty": tags.get("healthcare:speciality") or tags.get("speciality") or "",
+        "address": address or tags.get("addr:full") or "Address not available",
+        "contact": tags.get("phone") or tags.get("contact:phone") or tags.get("website") or "",
+        "metadata": f"OpenStreetMap {element.get('type', 'record')} #{element.get('id')}",
+        "latitude": lat,
+        "longitude": lon,
+        "source": "OpenStreetMap",
+    }
+
+
 @app.on_event("startup")
 def startup():
     try:
@@ -450,6 +541,60 @@ def search_hcps(q: str = "", user: User = Depends(current_user), db: Session = D
         }
         for hcp in hcps
     ]
+
+
+@app.get("/api/nearby-healthcare")
+def nearby_healthcare(
+    lat: float,
+    lon: float,
+    category: str = "all",
+    radius: int = 10000,
+    q: str = "",
+    user: User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        raise HTTPException(status_code=400, detail="Invalid location coordinates")
+
+    safe_radius = max(1000, min(radius, 50000))
+    safe_category = category if category in {"all", "doctors", "clinics", "hospitals"} else "all"
+    overpass_query = overpass_category_query(safe_category, lat, lon, safe_radius).encode("utf-8")
+    req = request.Request(
+        "https://overpass-api.de/api/interpreter",
+        data=overpass_query,
+        headers={"Content-Type": "text/plain; charset=utf-8", "User-Agent": "hcp-crm/1.0"},
+        method="POST",
+    )
+
+    try:
+        with request.urlopen(req, timeout=25) as response:
+            data = json.loads(response.read().decode("utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"OpenStreetMap nearby search failed: {exc}")
+
+    search = q.strip().lower()
+    places = []
+    seen = set()
+    for element in data.get("elements", []):
+        place = normalize_overpass_element(element)
+        if not place or place["id"] in seen:
+            continue
+        searchable = " ".join(
+            str(place.get(field, "")) for field in ("name", "typeLabel", "specialty", "address")
+        ).lower()
+        if search and search not in searchable:
+            continue
+        places.append(place)
+        seen.add(place["id"])
+        if len(places) >= 80:
+            break
+
+    try:
+        log_activity(db, user.id, "nearby_healthcare_search", "/api/nearby-healthcare")
+    except OperationalError:
+        db.rollback()
+
+    return {"source": "OpenStreetMap", "count": len(places), "places": places}
 
 
 @app.post("/api/interactions")

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import CRMMapPanel from "./CRMMapPanel";
-import { searchHcps } from "../hooks/api";
+import { searchHcps, searchNearbyHealthcare } from "../hooks/api";
 
 const doctorSpecialties = ["Cardiologist", "Dentist", "Pediatrician", "Orthopedic Doctor", "Dermatologist", "General Physician"];
 
@@ -52,6 +52,37 @@ function normalizeHcp(hcp, index, type) {
   };
 }
 
+function distanceLabel(place, location) {
+  if (!location || !place.latitude || !place.longitude) return "Nearby";
+  const earthRadiusKm = 6371;
+  const toRadians = (value) => Number(value) * (Math.PI / 180);
+  const dLat = toRadians(place.latitude - location.latitude);
+  const dLon = toRadians(place.longitude - location.longitude);
+  const lat1 = toRadians(location.latitude);
+  const lat2 = toRadians(place.latitude);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  const km = earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return `${km.toFixed(km < 10 ? 1 : 0)} km away`;
+}
+
+function normalizeOsmPlace(place, location) {
+  return {
+    ...place,
+    id: place.id,
+    name: place.name || "Unnamed healthcare location",
+    type: place.type || "healthcare",
+    typeLabel: place.typeLabel || "Healthcare",
+    category: place.category || place.type || "Healthcare",
+    address: place.address || "Address not available",
+    contact: place.contact || "",
+    metadata: place.metadata || "OpenStreetMap healthcare location",
+    rating: "OSM",
+    distance: distanceLabel(place, location),
+    availability: "Live OpenStreetMap result",
+    source: "OpenStreetMap",
+  };
+}
+
 function matchesType(hcp, type) {
   const text = `${hcp.name || ""} ${hcp.specialty || ""} ${hcp.institution || ""}`.toLowerCase();
   if (type === "clinics") return text.includes("clinic") || text.includes("center") || text.includes("centre");
@@ -64,11 +95,15 @@ function DiscoveryPage({ type = "doctors" }) {
   const [query, setQuery] = useState(config.query);
   const [location, setLocation] = useState(null);
   const [hcps, setHcps] = useState([]);
+  const [osmPlaces, setOsmPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
   const [view, setView] = useState("list");
   const [error, setError] = useState("");
+  const [nearbyError, setNearbyError] = useState("");
 
   const entityType = type === "clinics" ? "clinic" : type === "hospitals" ? "hospital" : "doctor";
+  const nearbyCategory = type === "clinics" ? "clinics" : type === "hospitals" ? "hospitals" : "doctors";
 
   const fetchHcps = async () => {
     setLoading(true);
@@ -84,20 +119,60 @@ function DiscoveryPage({ type = "doctors" }) {
     }
   };
 
+  const fetchNearby = async (nextQuery = query, nextLocation = location) => {
+    if (!nextLocation) {
+      setNearbyError("Allow location access to load live nearby healthcare locations.");
+      setOsmPlaces([]);
+      return;
+    }
+    setNearbyLoading(true);
+    setNearbyError("");
+    try {
+      const response = await searchNearbyHealthcare({
+        lat: nextLocation.latitude,
+        lon: nextLocation.longitude,
+        category: nearbyCategory,
+        radius: 10000,
+        q: nextQuery,
+      });
+      setOsmPlaces((response.data?.places || []).map((place) => normalizeOsmPlace(place, nextLocation)));
+    } catch {
+      setNearbyError("Could not load live OpenStreetMap healthcare results. Please retry.");
+      setOsmPlaces([]);
+    } finally {
+      setNearbyLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    fetchHcps();
+    fetchNearby();
+  };
+
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
-      (position) => setLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
-      () => setLocation(null),
+      (position) => {
+        const nextLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        setLocation(nextLocation);
+        fetchNearby(config.query, nextLocation);
+      },
+      () => {
+        setLocation(null);
+        setNearbyError("Location permission is blocked. Enable it to load live nearby hospitals and clinics.");
+      },
       { timeout: 5000 }
     );
   }, []);
 
   useEffect(() => {
     setQuery(config.query);
+    setOsmPlaces([]);
+    setNearbyError("");
     fetchHcps();
+    if (location) fetchNearby(config.query, location);
   }, [type]);
 
-  const results = useMemo(() => {
+  const crmResults = useMemo(() => {
     const search = query.trim().toLowerCase();
     return hcps
       .filter((hcp) => matchesType(hcp, type))
@@ -107,6 +182,8 @@ function DiscoveryPage({ type = "doctors" }) {
       })
       .map((hcp, index) => normalizeHcp(hcp, index, entityType));
   }, [entityType, hcps, query, type]);
+
+  const results = useMemo(() => [...osmPlaces, ...crmResults], [crmResults, osmPlaces]);
 
   return (
     <main className="discovery-page">
@@ -125,11 +202,14 @@ function DiscoveryPage({ type = "doctors" }) {
       <section className="search-panel">
         <div className="search-row">
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search CRM records by name, specialty, institution, or territory" />
-          <button type="button" onClick={fetchHcps}>Search</button>
+          <button type="button" onClick={handleSearch}>Search</button>
         </div>
         <div className="filter-row">
           {config.filters.map((filter) => (
-            <button className="filter-chip" type="button" key={filter} onClick={() => setQuery(filter)}>
+            <button className="filter-chip" type="button" key={filter} onClick={() => {
+              setQuery(filter);
+              fetchNearby(filter);
+            }}>
               {filter}
             </button>
           ))}
@@ -139,16 +219,21 @@ function DiscoveryPage({ type = "doctors" }) {
       <section className="discovery-layout">
         <div className={`result-list ${view === "map" ? "compact-results" : ""}`}>
           <div className="result-meta">
-            <strong>{loading ? "Loading CRM records" : `${results.length} CRM records found`}</strong>
-            <span>OpenStreetMap + Leaflet using existing backend data</span>
+            <strong>{loading || nearbyLoading ? "Loading nearby healthcare records" : `${results.length} records found`}</strong>
+            <span>{osmPlaces.length} live OSM results | {crmResults.length} CRM records</span>
           </div>
           {error && (
             <div className="map-config-alert">
-              {error} <button type="button" onClick={fetchHcps}>Retry</button>
+              {error} <button type="button" onClick={handleSearch}>Retry</button>
             </div>
           )}
-          {loading && <div className="empty-state">Loading mapped CRM entities...</div>}
-          {!loading && results.map((place) => (
+          {nearbyError && (
+            <div className="map-config-alert">
+              {nearbyError} <button type="button" onClick={handleSearch}>Retry</button>
+            </div>
+          )}
+          {(loading || nearbyLoading) && <div className="empty-state">Loading live nearby healthcare locations...</div>}
+          {!loading && !nearbyLoading && results.map((place) => (
             <article className="provider-card" key={place.id}>
               <div>
                 <p className="eyebrow">{place.typeLabel}</p>
@@ -158,6 +243,7 @@ function DiscoveryPage({ type = "doctors" }) {
                   {place.specialty && <span>{place.specialty}</span>}
                   <span>{place.distance}</span>
                   <span>{place.metadata}</span>
+                  {place.source && <span>{place.source}</span>}
                 </div>
                 <p className="availability">{place.availability}</p>
               </div>
@@ -168,13 +254,13 @@ function DiscoveryPage({ type = "doctors" }) {
               </div>
             </article>
           ))}
-          {!loading && !results.length && <div className="empty-state">No mapped CRM records match this search. Add HCP or account data to populate the map.</div>}
+          {!loading && !nearbyLoading && !results.length && <div className="empty-state">No nearby healthcare records matched this search. Try a broader term or increase location access accuracy.</div>}
         </div>
 
         <aside className="map-panel">
           <CRMMapPanel places={results} location={location} />
           <p>
-            Map powered by OpenStreetMap and Leaflet. Markers are generated from existing CRM HCP/account records.
+            Map powered by OpenStreetMap, Overpass, and Leaflet. Live markers come from OSM; CRM records remain available beside them.
           </p>
         </aside>
       </section>

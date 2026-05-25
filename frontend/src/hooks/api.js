@@ -24,6 +24,8 @@ export const listAdminUsers = (q = "") => api.get("/admin/users", { params: { q 
 export const getAdminUserActivity = (id) => api.get(`/admin/users/${id}/activity`);
 export const sendChatMessage = (message, history = []) => api.post("/api/chat", { message, history });
 export const searchHcps = (q) => api.get("/api/hcps", { params: { q } });
+export const searchNearbyHealthcare = ({ lat, lon, category = "all", radius = 10000, q = "" }) =>
+  api.get("/api/nearby-healthcare", { params: { lat, lon, category, radius, q } });
 export const saveInteraction = (interaction) =>
   api.post("/api/interactions", {
     ...interaction,

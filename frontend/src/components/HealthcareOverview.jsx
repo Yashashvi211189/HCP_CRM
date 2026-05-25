@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import CRMMapPanel from "./CRMMapPanel";
+import { searchNearbyHealthcare } from "../hooks/api";
 
 const capabilityCards = [
   ["Find Doctors", "Discover verified specialists by city, speciality, rating, and distance.", "FD"],
@@ -32,15 +33,28 @@ const reasons = [
 function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
   const [locationStatus, setLocationStatus] = useState("Requesting location permission...");
   const [coordinates, setCoordinates] = useState(null);
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
-      (position) => {
-        setCoordinates({
-          latitude: position.coords.latitude.toFixed(4),
-          longitude: position.coords.longitude.toFixed(4),
-        });
+      async (position) => {
+        const nextCoordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        setCoordinates(nextCoordinates);
         setLocationStatus("Location enabled");
+        try {
+          const response = await searchNearbyHealthcare({
+            lat: nextCoordinates.latitude,
+            lon: nextCoordinates.longitude,
+            category: "all",
+            radius: 10000,
+          });
+          setNearbyPlaces(response.data?.places || []);
+        } catch {
+          setLocationStatus("Location enabled; nearby search unavailable");
+        }
       },
       () => {
         setLocationStatus("Manual city search available");
@@ -68,8 +82,8 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
         <div className="overview-profile-card">
           <span>Your Healthcare Dashboard</span>
           <strong>{selectedHcp?.name || "Healthcare profile"}</strong>
-          <p>Current Location: {coordinates ? `${coordinates.latitude}, ${coordinates.longitude}` : locationStatus}</p>
-          <small>OpenStreetMap is active. Nearby records come from existing CRM data.</small>
+          <p>Current Location: {coordinates ? `${Number(coordinates.latitude).toFixed(4)}, ${Number(coordinates.longitude).toFixed(4)}` : locationStatus}</p>
+          <small>OpenStreetMap is active. Nearby care locations come from live OSM data.</small>
         </div>
       </div>
 
@@ -79,7 +93,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
           <h2>Doctors, clinics, and hospitals around you</h2>
           <p>Location powers nearby discovery. If browser permission is blocked, use city or specialty search from the discovery pages.</p>
         </div>
-        <CRMMapPanel places={[]} location={coordinates} compact />
+        <CRMMapPanel places={nearbyPlaces} location={coordinates} compact />
       </div>
 
       <div className="overview-info-card">
