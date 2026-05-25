@@ -37,8 +37,8 @@ function HCPSelectionModal({ onCancel, onContinue }) {
       <div className="hcp-modal" role="dialog" aria-modal="true" aria-labelledby="hcp-modal-title">
         <div className="modal-header">
           <div>
-            <p className="eyebrow">Healthcare context</p>
-            <h2 id="hcp-modal-title">Select Healthcare Provider</h2>
+            <p className="eyebrow">CRM context</p>
+            <h2 id="hcp-modal-title">Select Healthcare Professional</h2>
           </div>
           <button className="icon-button" type="button" onClick={onCancel} aria-label="Close provider selection">
             x
@@ -47,12 +47,12 @@ function HCPSelectionModal({ onCancel, onContinue }) {
 
         <div className="modal-form">
           <label>
-            Provider Name
-            <input value={hcp.name} onChange={(event) => update("name", event.target.value)} placeholder="Enter provider name" />
+            HCP Name
+            <input value={hcp.name} onChange={(event) => update("name", event.target.value)} placeholder="Enter HCP name" />
           </label>
           <label>
-            Provider ID
-            <input value={hcp.id} onChange={(event) => update("id", event.target.value)} placeholder="Enter provider ID" />
+            HCP ID
+            <input value={hcp.id} onChange={(event) => update("id", event.target.value)} placeholder="Enter HCP ID" />
           </label>
           <label>
             Specialty
@@ -65,7 +65,7 @@ function HCPSelectionModal({ onCancel, onContinue }) {
         </div>
 
         <div className="modal-preview">
-          <span>Selected provider</span>
+          <span>Selected HCP workspace</span>
           <strong>{hcp.name || "Healthcare Professional"}</strong>
           <p>{hcp.specialty} | {hcp.id || "HCP ID pending"}</p>
         </div>

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 const capabilityCards = [
   ["Find Doctors", "Discover verified specialists by city, speciality, rating, and distance.", "FD"],
   ["Nearby Clinics", "Compare clinics, availability, photos, directions, and contact details.", "NC"],
@@ -26,27 +28,60 @@ const reasons = [
 ];
 
 function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
+  const [locationStatus, setLocationStatus] = useState("Requesting location permission...");
+  const [coordinates, setCoordinates] = useState(null);
+
+  useEffect(() => {
+    navigator.geolocation?.getCurrentPosition(
+      (position) => {
+        setCoordinates({
+          latitude: position.coords.latitude.toFixed(4),
+          longitude: position.coords.longitude.toFixed(4),
+        });
+        setLocationStatus("Location enabled");
+      },
+      () => {
+        setLocationStatus("Manual city search available");
+      },
+      { timeout: 5000 }
+    );
+  }, []);
+
   return (
     <section className="overview-page">
       <div className="overview-hero">
         <div>
           <p className="eyebrow">Your healthcare dashboard</p>
-          <h1>Find Trusted Doctors Near You</h1>
+          <h1>Find Trusted Healthcare Providers Near You</h1>
           <p>
-            Discover verified doctors, clinics, hospitals, and healthcare specialists across India. Compare ratings,
-            availability, and instantly book appointments with AI-assisted recommendations.
+            Search doctors, clinics, and hospitals near your location, manage appointments, and receive AI-powered
+            healthcare assistance from a single platform.
           </p>
           <div className="overview-actions">
             <button type="button" onClick={() => onNavigate("doctors")}>Find Doctors</button>
             <button className="secondary-button" type="button" onClick={onStartInteraction}>Book Appointment</button>
-            <button className="secondary-button" type="button" onClick={() => onNavigate("clinics")}>View Nearby Clinics</button>
+            <button className="secondary-button" type="button" onClick={() => onNavigate("hospitals")}>Nearby Hospitals</button>
           </div>
         </div>
         <div className="overview-profile-card">
           <span>Your Healthcare Dashboard</span>
           <strong>{selectedHcp?.name || "Healthcare profile"}</strong>
-          <p>Current Location: Bengaluru, India</p>
+          <p>Current Location: {coordinates ? `${coordinates.latitude}, ${coordinates.longitude}` : locationStatus}</p>
           <small>Nearest Hospital: Apollo Hospital | Upcoming Appointment: Today 4:00 PM | Health Status: Stable</small>
+        </div>
+      </div>
+
+      <div className="home-map-card">
+        <div>
+          <p className="eyebrow">Nearby care map</p>
+          <h2>Doctors, clinics, and hospitals around you</h2>
+          <p>Location powers nearby discovery. If browser permission is blocked, use city or specialty search from the discovery pages.</p>
+        </div>
+        <div className="mini-map">
+          <span>Nearby Providers</span>
+          <div className="map-marker marker-1">1</div>
+          <div className="map-marker marker-2">2</div>
+          <div className="map-marker marker-3">3</div>
         </div>
       </div>
 
@@ -58,7 +93,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
         <p>
           This platform helps people discover healthcare professionals, clinics, and hospitals nearby. It combines
           provider search, appointment management, AI-assisted recommendations, directions, and health records while
-          preserving the existing appointment logging engine behind the scenes.
+          preserving the existing HCP CRM interaction logging engine behind the scenes.
         </p>
       </div>
 

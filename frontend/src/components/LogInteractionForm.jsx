@@ -89,21 +89,21 @@ function LogInteractionForm({ selectedHcp }) {
     <section className="panel form-panel">
       <div className="form-hero">
         <div>
-          <p className="eyebrow">Interaction workspace</p>
-          <h1>Appointment Management</h1>
+          <p className="eyebrow">HCP CRM workspace</p>
+          <h1>Log HCP Interaction</h1>
           {selectedHcp && <p className="selected-context">Workspace: {selectedHcp.name} | {selectedHcp.specialty}</p>}
         </div>
         <div className={`ai-state-pill ${isLoading ? "thinking" : ""}`}>{isLoading ? "AI extracting" : "Ready"}</div>
       </div>
 
-      <FormCard title="Appointment Details" description="Core visit details used for scheduling, history, and follow-up.">
+      <FormCard title="Interaction Details" description="Core CRM fields used for routing, history, compliance, and follow-up.">
         <div className="two-column">
           <label>
-            Healthcare Provider
+            HCP Name
             <input value={form.hcp_name} onChange={(event) => update("hcp_name", event.target.value)} placeholder="Search or select HCP..." />
           </label>
           <label>
-            Appointment Type
+            Interaction Type
             <select value={form.interaction_type} onChange={(event) => update("interaction_type", event.target.value)}>
               <option>Meeting</option>
               <option>Call</option>
@@ -132,7 +132,7 @@ function LogInteractionForm({ selectedHcp }) {
         </details>
       </FormCard>
 
-      <FormCard title="Visit Summary" description="Capture the clinically relevant context from the appointment.">
+      <FormCard title="Discussion Summary" description="Capture the clinically relevant context from the HCP engagement.">
         <label>
           Topics Discussed
           <div className="textarea-with-icon">

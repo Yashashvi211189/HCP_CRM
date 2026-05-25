@@ -1494,6 +1494,55 @@ button:hover {
   padding: 26px;
 }
 
+.home-map-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 22px;
+  align-items: center;
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.05);
+  padding: 24px;
+}
+
+.home-map-card h2 {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 24px;
+}
+
+.home-map-card p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.mini-map {
+  position: relative;
+  min-height: 230px;
+  overflow: hidden;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(191, 219, 254, 0.35) 1px, transparent 1px),
+    linear-gradient(rgba(191, 219, 254, 0.35) 1px, transparent 1px),
+    #eff6ff;
+  background-size: 42px 42px;
+}
+
+.mini-map > span {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
 .overview-info-card h2,
 .section-heading h2 {
   margin-top: 4px;
@@ -1738,7 +1787,8 @@ button:hover {
   }
 
   .overview-hero,
-  .overview-info-card {
+  .overview-info-card,
+  .home-map-card {
     grid-template-columns: 1fr;
   }
 

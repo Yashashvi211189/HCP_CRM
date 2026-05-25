@@ -45,8 +45,8 @@ function AuthenticatedCRM({ onLogout }) {
         <div className="brand-lockup">
           <span className="brand-mark">HC</span>
           <div>
-            <span className="brand-title">HealthConnect</span>
-            <span className="brand-subtitle">Healthcare discovery platform</span>
+            <span className="brand-title">HCP CRM</span>
+            <span className="brand-subtitle">Healthcare CRM and discovery platform</span>
           </div>
         </div>
         <nav className="main-nav" aria-label="Primary">
@@ -66,7 +66,7 @@ function AuthenticatedCRM({ onLogout }) {
         </nav>
         <div className="header-actions">
           <button className="secondary-button" type="button" onClick={() => setShowHcpModal(true)}>
-            {selectedHcp?.name || "Select Provider"}
+            {selectedHcp?.name || "Select HCP"}
           </button>
           <button type="button" onClick={onLogout}>
             Logout
