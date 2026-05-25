@@ -6,8 +6,8 @@ const capabilityCards = [
   ["Find Doctors", "Discover verified specialists by city, speciality, rating, and distance.", "FD"],
   ["Nearby Clinics", "Compare clinics, availability, photos, directions, and contact details.", "NC"],
   ["Hospitals", "Locate hospitals, emergency services, and consultation options near you.", "HP"],
-  ["Appointments", "Schedule visits, view previous appointments, and manage follow-ups.", "AP"],
-  ["AI Assistant", "Get specialist suggestions, reminders, provider recommendations, and visit guidance.", "AI"],
+  ["Interaction Logger", "Capture HCP engagements, notes, outcomes, and follow-up actions.", "IL"],
+  ["AI Workspace", "Extract CRM fields, generate summaries, and recommend follow-up actions.", "AI"],
   ["Health Records", "Organize prescriptions, lab reports, notes, and medical documents.", "HR"],
 ];
 
@@ -18,7 +18,7 @@ const stats = [
   ["24/7", "AI Health Guidance"],
 ];
 
-const workflow = ["Find Provider", "Compare Options", "Book Appointment", "Visit Doctor", "Capture Notes", "Track Records"];
+const workflow = ["Find Provider", "Compare Options", "Open Interaction Logger", "Capture Notes", "AI Generates Insights", "Save CRM Record"];
 
 const reasons = [
   "Nearby doctors and hospitals",
@@ -66,7 +66,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
           </p>
           <div className="overview-actions">
             <button type="button" onClick={() => onNavigate("doctors")}>Find Doctors</button>
-            <button className="secondary-button" type="button" onClick={onStartInteraction}>Book Appointment</button>
+            <button className="secondary-button" type="button" onClick={onStartInteraction}>Open Interaction Logger</button>
             <button className="secondary-button" type="button" onClick={() => onNavigate("hospitals")}>Nearby Hospitals</button>
           </div>
         </div>

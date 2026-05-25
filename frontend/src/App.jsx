@@ -55,8 +55,8 @@ function AuthenticatedCRM({ onLogout }) {
             ["doctors", "Find Doctors"],
             ["clinics", "Clinics"],
             ["hospitals", "Hospitals"],
-            ["appointments", "Appointments"],
-            ["assistant", "AI Assistant"],
+            ["appointments", "Interaction Logger"],
+            ["assistant", "AI Workspace"],
             ["records", "Health Records"],
           ].map(([page, label]) => (
             <button className={activePage === page ? "active" : ""} type="button" key={page} onClick={() => navigate(page)}>
