@@ -5,6 +5,18 @@ import { saveInteraction, sendChatMessage, trackActivity } from "../hooks/api";
 import { addMessage, setError, setLoading } from "../store/chatSlice";
 import { populateFromAI, resetForm, setField, setSavedId, setSaveError, setSaving, setSuggestions } from "../store/interactionSlice";
 
+function FormCard({ title, description, children }) {
+  return (
+    <div className="form-card">
+      <div className="form-card-header">
+        <h3>{title}</h3>
+        {description && <p>{description}</p>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function LogInteractionForm() {
   const dispatch = useDispatch();
   const form = useSelector((state) => state.interaction);
@@ -59,11 +71,8 @@ function LogInteractionForm() {
       let interimTranscript = "";
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const transcript = event.results[index][0].transcript;
-        if (event.results[index].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
+        if (event.results[index].isFinal) finalTranscript += transcript;
+        else interimTranscript += transcript;
       }
       update("topics_discussed", `${finalTranscript}${interimTranscript}`.trim());
     };
@@ -78,122 +87,122 @@ function LogInteractionForm() {
 
   return (
     <section className="panel form-panel">
-      <h1>Log HCP Interaction</h1>
-      <div className="section-title">Interaction Details</div>
-
-      <div className="two-column">
-        <label>
-          HCP Name
-          <input value={form.hcp_name} onChange={(event) => update("hcp_name", event.target.value)} placeholder="Search or select HCP..." />
-        </label>
-        <label>
-          Interaction Type
-          <select value={form.interaction_type} onChange={(event) => update("interaction_type", event.target.value)}>
-            <option>Meeting</option>
-            <option>Call</option>
-            <option>Email</option>
-            <option>Conference</option>
-            <option>Other</option>
-          </select>
-        </label>
-      </div>
-
-      <div className="two-column">
-        <label>
-          Date
-          <input type="date" value={form.interaction_date} onChange={(event) => update("interaction_date", event.target.value)} />
-        </label>
-        <label>
-          Time
-          <input type="time" value={form.interaction_time} onChange={(event) => update("interaction_time", event.target.value)} />
-        </label>
-      </div>
-
-      <label>
-        Attendees
-        <input value={form.attendees} onChange={(event) => update("attendees", event.target.value)} placeholder="Enter names or search..." />
-      </label>
-
-      <label>
-        Topics Discussed
-        <div className="textarea-with-icon">
-          <textarea
-            value={form.topics_discussed}
-            onChange={(event) => update("topics_discussed", event.target.value)}
-            placeholder="Enter key discussion points..."
-          />
-          <span aria-label="mic" className="mic-icon">
-            🎙️
-          </span>
+      <div className="form-hero">
+        <div>
+          <p className="eyebrow">Interaction workspace</p>
+          <h1>Log HCP Interaction</h1>
         </div>
-      </label>
+        <div className={`ai-state-pill ${isLoading ? "thinking" : ""}`}>{isLoading ? "AI extracting" : "Ready"}</div>
+      </div>
 
-      <button className="secondary-button" type="button" onClick={handleVoiceNote} disabled={listening || isLoading}>
-        Summarize from Voice Note (Requires Consent)
-      </button>
+      <FormCard title="Interaction Details" description="Core CRM fields used for routing, history, and reporting.">
+        <div className="two-column">
+          <label>
+            HCP Name
+            <input value={form.hcp_name} onChange={(event) => update("hcp_name", event.target.value)} placeholder="Search or select HCP..." />
+          </label>
+          <label>
+            Interaction Type
+            <select value={form.interaction_type} onChange={(event) => update("interaction_type", event.target.value)}>
+              <option>Meeting</option>
+              <option>Call</option>
+              <option>Email</option>
+              <option>Conference</option>
+              <option>Other</option>
+            </select>
+          </label>
+        </div>
+        <details className="details-block">
+          <summary>Date, time, and attendees</summary>
+          <div className="two-column">
+            <label>
+              Date
+              <input type="date" value={form.interaction_date} onChange={(event) => update("interaction_date", event.target.value)} />
+            </label>
+            <label>
+              Time
+              <input type="time" value={form.interaction_time} onChange={(event) => update("interaction_time", event.target.value)} />
+            </label>
+          </div>
+          <label>
+            Attendees
+            <input value={form.attendees} onChange={(event) => update("attendees", event.target.value)} placeholder="Enter names or search..." />
+          </label>
+        </details>
+      </FormCard>
 
-      <div className="inline-row">
+      <FormCard title="Discussion Summary" description="Capture the clinically relevant context from the interaction.">
         <label>
-          Materials Shared
-          <input value={form.materials_shared} onChange={(event) => update("materials_shared", event.target.value)} />
+          Topics Discussed
+          <div className="textarea-with-icon">
+            <textarea
+              value={form.topics_discussed}
+              onChange={(event) => update("topics_discussed", event.target.value)}
+              placeholder="Enter key discussion points..."
+            />
+            <span aria-label="microphone" className="mic-icon">Mic</span>
+          </div>
         </label>
-        <button type="button">Search/Add</button>
-      </div>
+        <button className="secondary-button" type="button" onClick={handleVoiceNote} disabled={listening || isLoading}>
+          {listening ? "Listening..." : "Summarize from Voice Note (Requires Consent)"}
+        </button>
+      </FormCard>
 
-      <div className="inline-row">
-        <label>
-          Samples Distributed
-          <input value={form.samples_distributed} onChange={(event) => update("samples_distributed", event.target.value)} />
-        </label>
-        <button type="button">Add Sample</button>
-      </div>
+      <FormCard title="Materials & Samples">
+        <div className="inline-row">
+          <label>
+            Materials Shared
+            <input value={form.materials_shared} onChange={(event) => update("materials_shared", event.target.value)} />
+          </label>
+          <button type="button">Search/Add</button>
+        </div>
+        <div className="inline-row">
+          <label>
+            Samples Distributed
+            <input value={form.samples_distributed} onChange={(event) => update("samples_distributed", event.target.value)} />
+          </label>
+          <button type="button">Add Sample</button>
+        </div>
+      </FormCard>
 
-      <div className="field-label">Observed/Inferred HCP Sentiment</div>
-      <div className="sentiment-row">
-        <label className={`sentiment-option positive ${form.sentiment === "Positive" ? "active" : ""}`}>
-          <input type="radio" name="sentiment" checked={form.sentiment === "Positive"} onChange={() => update("sentiment", "Positive")} />
-          😊 Positive
-        </label>
-        <label className={`sentiment-option neutral ${form.sentiment === "Neutral" ? "active" : ""}`}>
-          <input type="radio" name="sentiment" checked={form.sentiment === "Neutral"} onChange={() => update("sentiment", "Neutral")} />
-          😐 Neutral
-        </label>
-        <label className={`sentiment-option negative ${form.sentiment === "Negative" ? "active" : ""}`}>
-          <input type="radio" name="sentiment" checked={form.sentiment === "Negative"} onChange={() => update("sentiment", "Negative")} />
-          😟 Negative
-        </label>
-      </div>
-
-      <label>
-        Outcomes
-        <textarea value={form.outcomes} onChange={(event) => update("outcomes", event.target.value)} placeholder="Key outcomes or agreements..." />
-      </label>
-
-      <label>
-        Follow-up Actions
-        <textarea value={form.followup_actions} onChange={(event) => update("followup_actions", event.target.value)} placeholder="Enter next steps or tasks..." />
-      </label>
-
-      <div className="suggestions">
-        <div className="section-title">AI Suggested Follow-ups</div>
-        <ul>
-          {(form.ai_suggested_followups || []).map((suggestion) => (
-            <li key={suggestion}>
-              <button type="button" onClick={() => update("followup_actions", suggestion)}>
-                {suggestion}
-              </button>
-            </li>
+      <FormCard title="Sentiment Analysis">
+        <div className="sentiment-row">
+          {["Positive", "Neutral", "Negative"].map((sentiment) => (
+            <label key={sentiment} className={`sentiment-option ${sentiment.toLowerCase()} ${form.sentiment === sentiment ? "active" : ""}`}>
+              <input type="radio" name="sentiment" checked={form.sentiment === sentiment} onChange={() => update("sentiment", sentiment)} />
+              {sentiment}
+            </label>
           ))}
-        </ul>
-      </div>
+        </div>
+      </FormCard>
+
+      <FormCard title="Outcomes">
+        <label>
+          Outcomes
+          <textarea value={form.outcomes} onChange={(event) => update("outcomes", event.target.value)} placeholder="Key outcomes or agreements..." />
+        </label>
+      </FormCard>
+
+      <FormCard title="Follow-Up Actions" description="Accept an AI suggestion or write the next step manually.">
+        <label>
+          Follow-up Actions
+          <textarea value={form.followup_actions} onChange={(event) => update("followup_actions", event.target.value)} placeholder="Enter next steps or tasks..." />
+        </label>
+        <div className="suggestion-card-list">
+          {(form.ai_suggested_followups || []).map((suggestion, index) => (
+            <button className="followup-mini-card" type="button" key={suggestion} onClick={() => update("followup_actions", suggestion)}>
+              <span>{index === 0 ? "High" : index === 1 ? "Medium" : "Low"} Priority</span>
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      </FormCard>
 
       <div className="form-actions">
         <div className="form-status">{form.saveError || (form.savedId ? `Saved ${form.savedId}` : "")}</div>
-        <button type="button" onClick={() => dispatch(resetForm())}>
-          Reset
-        </button>
+        <button type="button" onClick={() => dispatch(resetForm())}>Reset</button>
         <button className="save-button" type="button" onClick={handleSave} disabled={form.isSaving}>
-          Save
+          {form.isSaving ? "Saving..." : "Save"}
         </button>
       </div>
     </section>

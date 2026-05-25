@@ -579,3 +579,411 @@ legend {
     grid-template-columns: 1fr;
   }
 }
+
+/* Modern CRM enhancement layer */
+body {
+  background: #f8fafc;
+}
+
+.app-shell {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
+}
+
+.panel {
+  border-color: #e2e8f0;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.form-panel {
+  gap: 16px;
+  padding: 20px;
+}
+
+.form-hero,
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.form-hero h1 {
+  margin-top: 4px;
+}
+
+.ai-state-pill {
+  min-width: 86px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.ai-state-pill.thinking {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.form-card,
+.ai-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+.form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+.form-card-header h3,
+.ai-card-title h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.form-card-header p,
+.muted {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.details-block {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}
+
+.details-block summary {
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.details-block[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+input,
+select,
+textarea {
+  border-color: #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+textarea {
+  min-height: 108px;
+}
+
+button {
+  border-radius: 10px;
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.secondary-button {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.mic-icon {
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 5px 7px;
+}
+
+.sentiment-option {
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.suggestion-card-list,
+.followup-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.followup-mini-card {
+  height: auto;
+  justify-content: flex-start;
+  border-color: #dbeafe;
+  background: #f8fafc;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.followup-mini-card span {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.06);
+  padding: 12px;
+}
+
+.chat-panel {
+  position: sticky;
+  top: 12px;
+  max-height: calc(100vh - 24px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.ai-header {
+  padding: 18px 20px;
+}
+
+.processing-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #10b981;
+  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.12);
+}
+
+.processing-dot.active {
+  background: #f59e0b;
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.16);
+}
+
+.ai-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+.chat-history.compact {
+  max-height: 260px;
+  min-height: 150px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.message {
+  border-radius: 14px;
+}
+
+.ai-alert {
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 700;
+  padding: 10px 12px;
+}
+
+.ai-card {
+  padding: 16px;
+}
+
+.ai-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.ai-card-title span {
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 5px 8px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summary-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.summary-item span,
+.confidence-row span {
+  color: #64748b;
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summary-item strong,
+.confidence-row strong {
+  color: #0f172a;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.confidence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confidence-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.confidence-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e2e8f0;
+}
+
+.confidence-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #10b981;
+}
+
+.followup-action-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.followup-action-card strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.followup-action-card p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.followup-action-card button {
+  height: 34px;
+  padding: 0 12px;
+}
+
+.priority {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 7px;
+}
+
+.priority.high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.priority.medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.priority.low {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.doctor-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.doctor-avatar {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 14px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 900;
+}
+
+.doctor-card p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .summary-grid,
+  .followup-action-card {
+    grid-template-columns: 1fr;
+  }
+
+  .form-hero,
+  .ai-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
