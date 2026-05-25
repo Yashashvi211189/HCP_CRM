@@ -182,6 +182,11 @@ def startup():
         print(f"Database unavailable during startup; temporary OTP login remains available. {exc}")
 
 
+@app.get("/")
+def health_check():
+    return {"status": "ok", "service": "hcp-crm-api"}
+
+
 def _date_value(value):
     return datetime.strptime(value, "%Y-%m-%d").date() if value else date.today()
 

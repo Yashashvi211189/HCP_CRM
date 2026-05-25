@@ -72,6 +72,7 @@ hcp-crm/
 +-- frontend/
 |   +-- public/
 |   |   +-- index.html
+|   +-- .env.example
 |   +-- package.json
 |   +-- src/
 |       +-- index.js
@@ -83,6 +84,10 @@ hcp-crm/
 +-- sql/
     +-- schema.sql
     +-- migration_auth.sql
++-- .github/
+|   +-- workflows/
+|       +-- pages.yml
++-- render.yaml
 ```
 
 ## LangGraph Agent Tools
@@ -217,6 +222,115 @@ Frontend app:
 ```text
 http://localhost:3000
 ```
+
+## Live Deployment
+
+This repository is configured for a practical hosted setup:
+
+- Frontend: GitHub Pages
+- Backend: Render Web Service
+- Database: Hosted MySQL, such as Railway MySQL, Aiven MySQL, PlanetScale, or any MySQL-compatible provider
+
+GitHub Pages can host the React frontend, but it cannot run FastAPI or MySQL. The backend and database must be deployed separately.
+
+### 1. Deploy the Backend on Render
+
+The repository includes `render.yaml`, which defines the FastAPI web service.
+
+In Render:
+
+1. Create a new Blueprint or Web Service from this GitHub repository.
+2. Use the backend service settings from `render.yaml`.
+3. Add the required environment variables:
+
+```env
+GROQ_API_KEY=your_groq_api_key_here
+DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:PORT/hcp_crm
+ADMIN_PASSWORD=your_secure_admin_password
+JWT_SECRET=your_secure_jwt_secret
+```
+
+The backend start command is:
+
+```text
+uvicorn main:app --host 0.0.0.0 --port $PORT
+```
+
+After deployment, Render will give you a backend URL similar to:
+
+```text
+https://hcp-crm-api.onrender.com
+```
+
+### 2. Configure Hosted MySQL
+
+Create a hosted MySQL database and run:
+
+```sql
+CREATE DATABASE IF NOT EXISTS hcp_crm;
+```
+
+Then apply the schema from:
+
+```text
+sql/schema.sql
+```
+
+The final `DATABASE_URL` should look like:
+
+```env
+DATABASE_URL=mysql+pymysql://USER:PASSWORD@HOST:PORT/hcp_crm
+```
+
+### 3. Configure GitHub Pages
+
+The repository includes `.github/workflows/pages.yml`.
+
+Before enabling the workflow, add this repository variable in GitHub:
+
+```text
+Settings -> Secrets and variables -> Actions -> Variables -> New repository variable
+```
+
+Name:
+
+```text
+REACT_APP_API_URL
+```
+
+Value:
+
+```text
+https://your-render-backend-url.onrender.com
+```
+
+Then enable GitHub Pages:
+
+```text
+Settings -> Pages -> Build and deployment -> Source: GitHub Actions
+```
+
+After the workflow runs, the frontend will be available at:
+
+```text
+https://Yashashvi211189.github.io/HCP_CRM/
+```
+
+### 4. Frontend API Configuration
+
+The React app reads the backend URL from:
+
+```env
+REACT_APP_API_URL
+```
+
+For local development, it falls back to:
+
+```text
+http://127.0.0.1:8000
+```
+
+For production, set `REACT_APP_API_URL` to the deployed Render backend URL.
 
 ## Login
 

@@ -1,6 +1,10 @@
 backend/.env
+backend/.venv/
 backend/__pycache__/
 backend/agent/__pycache__/
+frontend/.env
+frontend/.env.local
+frontend/.env.production
 frontend/node_modules/
 frontend/build/
 *.pyc
