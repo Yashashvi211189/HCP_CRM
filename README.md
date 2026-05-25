@@ -93,9 +93,6 @@ hcp-crm/
 +-- sql/
     +-- schema.sql
     +-- migration_auth.sql
-+-- .github/
-|   +-- workflows/
-|       +-- pages.yml
 +-- render.yaml
 ```
 
@@ -246,7 +243,7 @@ Use three separate hosted pieces:
 
 | Part | Host | Purpose |
 | --- | --- | --- |
-| Frontend | Render Static Site or GitHub Pages | React app |
+| Frontend | Render Static Site | React app |
 | Backend | Render Web Service | FastAPI API and Swagger |
 | Database | Hosted MySQL | Permanent CRM records |
 
@@ -311,8 +308,6 @@ https://your-backend-service.onrender.com/docs
 
 ### 3. Deploy Frontend
 
-If using Render Static Site:
-
 ```text
 Root Directory: frontend
 Build Command: npm install && npm run build
@@ -323,40 +318,6 @@ Frontend environment variable:
 
 ```env
 REACT_APP_API_URL=https://your-backend-service.onrender.com
-```
-
-If using GitHub Pages:
-
-The repository includes `.github/workflows/pages.yml`.
-
-Before enabling the workflow, add this repository variable in GitHub:
-
-```text
-Settings -> Secrets and variables -> Actions -> Variables -> New repository variable
-```
-
-Name:
-
-```text
-REACT_APP_API_URL
-```
-
-Value:
-
-```text
-https://your-backend-service.onrender.com
-```
-
-Then enable GitHub Pages:
-
-```text
-Settings -> Pages -> Build and deployment -> Source: GitHub Actions
-```
-
-After the workflow runs, the frontend will be available at:
-
-```text
-https://Yashashvi211189.github.io/HCP_CRM/
 ```
 
 ### 4. Swagger UI
