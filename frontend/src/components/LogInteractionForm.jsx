@@ -17,7 +17,7 @@ function FormCard({ title, description, children }) {
   );
 }
 
-function LogInteractionForm() {
+function LogInteractionForm({ selectedHcp }) {
   const dispatch = useDispatch();
   const form = useSelector((state) => state.interaction);
   const { messages, isLoading } = useSelector((state) => state.chat);
@@ -91,6 +91,7 @@ function LogInteractionForm() {
         <div>
           <p className="eyebrow">Interaction workspace</p>
           <h1>Log HCP Interaction</h1>
+          {selectedHcp && <p className="selected-context">Workspace: {selectedHcp.name} | {selectedHcp.specialty}</p>}
         </div>
         <div className={`ai-state-pill ${isLoading ? "thinking" : ""}`}>{isLoading ? "AI extracting" : "Ready"}</div>
       </div>

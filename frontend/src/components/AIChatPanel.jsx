@@ -16,13 +16,20 @@ function confidence(value, base) {
   return value ? base : 0;
 }
 
-function AIChatPanel() {
+function AIChatPanel({ selectedHcp }) {
   const dispatch = useDispatch();
   const { messages, isLoading, error } = useSelector((state) => state.chat);
   const form = useSelector((state) => state.interaction);
   const [message, setMessage] = useState("");
 
   const products = useMemo(() => extractProducts(`${form.topics_discussed} ${form.raw_chat_input || ""}`), [form.topics_discussed, form.raw_chat_input]);
+  const hcpContext = {
+    name: form.hcp_name || selectedHcp?.name || "",
+    specialty: selectedHcp?.specialty || "Not available",
+    organization: selectedHcp?.organization || "Not available",
+    previousInteractions: selectedHcp?.previousInteractions || "Not available",
+    lastInteraction: selectedHcp?.lastInteraction || "Not available",
+  };
   const hasExtraction = Boolean(form.hcp_name || form.topics_discussed || form.materials_shared || form.outcomes || form.ai_suggested_followups.length);
 
   const extractedItems = [
@@ -147,13 +154,13 @@ function AIChatPanel() {
             <span>CRM profile</span>
           </div>
           <div className="doctor-card">
-            <div className="doctor-avatar">{form.hcp_name ? form.hcp_name.slice(0, 2).toUpperCase() : "DR"}</div>
+            <div className="doctor-avatar">{hcpContext.name ? hcpContext.name.slice(0, 2).toUpperCase() : "DR"}</div>
             <div>
-              <strong>{form.hcp_name || "No HCP selected"}</strong>
-              <p>Specialty: Not available</p>
-              <p>Organization: Not available</p>
-              <p>Previous interactions: Not available</p>
-              <p>Last interaction: Not available</p>
+              <strong>{hcpContext.name || "No HCP selected"}</strong>
+              <p>Specialty: {hcpContext.specialty}</p>
+              <p>Organization: {hcpContext.organization}</p>
+              <p>Previous interactions: {hcpContext.previousInteractions}</p>
+              <p>Last interaction: {hcpContext.lastInteraction}</p>
             </div>
           </div>
         </div>
