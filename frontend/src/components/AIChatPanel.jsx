@@ -72,14 +72,14 @@ function AIChatPanel() {
         <div>
           <p className="eyebrow">AI workspace</p>
           <h2>AI Assistant</h2>
-          <p>Log Interaction details here via chat</p>
+          <p>Discuss the interaction, then let AI structure the record.</p>
         </div>
         <div className={`processing-dot ${isLoading ? "active" : ""}`} aria-label={isLoading ? "AI processing" : "AI idle"} />
       </header>
 
       <div className="ai-workspace">
         <div className="chat-history compact">
-          <div className="message system">Example: Today I met with Dr. Smith, discussed Product X efficacy, positive sentiment, shared brochures.</div>
+          <div className="message system">Example: Met Dr. Smith today, discussed Product X efficacy, shared brochures, and agreed to send trial data.</div>
           {messages.map((item, index) => (
             <div className={`message ${item.role}`} key={`${item.role}-${index}`}>{item.content}</div>
           ))}
@@ -160,8 +160,8 @@ function AIChatPanel() {
       </div>
 
       <div className="chat-input">
-        <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Describe interaction..." />
-        <button type="button" onClick={handleSend} disabled={isLoading}>{isLoading ? "Logging" : "Log"}</button>
+        <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Message AI assistant..." />
+        <button type="button" onClick={handleSend} disabled={isLoading}>{isLoading ? "Sending" : "Send"}</button>
       </div>
     </section>
   );

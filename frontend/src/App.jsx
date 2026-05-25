@@ -36,7 +36,13 @@ function App() {
       ) : (
         <ProtectedRoute token={token} fallback={<LoginPage onLogin={setToken} onAdminLogin={setAdminToken} />}>
           <div className="top-bar">
-            <span>HCP CRM</span>
+            <div className="brand-lockup">
+              <span className="brand-mark">HC</span>
+              <div>
+                <span className="brand-title">HCP CRM</span>
+                <span className="brand-subtitle">Interaction intelligence workspace</span>
+              </div>
+            </div>
             <button type="button" onClick={logout}>
               Logout
             </button>
