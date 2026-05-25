@@ -419,10 +419,25 @@ def chat(request: ChatRequest, user: User = Depends(current_user), db: Session =
 
 @app.get("/api/hcps")
 def search_hcps(q: str = "", user: User = Depends(current_user), db: Session = Depends(get_db)):
-    query = db.query(HCP)
-    if q:
-        query = query.filter(HCP.name.ilike(f"%{q}%"))
-        log_activity(db, user.id, "search", "/api/hcps")
+    try:
+        query = db.query(HCP)
+        if q:
+            search = f"%{q}%"
+            query = query.filter(
+                or_(
+                    HCP.name.ilike(search),
+                    HCP.specialty.ilike(search),
+                    HCP.institution.ilike(search),
+                    HCP.email.ilike(search),
+                    HCP.phone.ilike(search),
+                )
+            )
+            log_activity(db, user.id, "search", "/api/hcps")
+        hcps = query.limit(50).all()
+    except OperationalError:
+        db.rollback()
+        return []
+
     return [
         {
             "id": str(hcp.id),
@@ -433,7 +448,7 @@ def search_hcps(q: str = "", user: User = Depends(current_user), db: Session = D
             "phone": str(hcp.phone or ""),
             "created_at": str(hcp.created_at or ""),
         }
-        for hcp in query.limit(20).all()
+        for hcp in hcps
     ]
 
 

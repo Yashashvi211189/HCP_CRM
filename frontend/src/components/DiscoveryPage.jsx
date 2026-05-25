@@ -19,7 +19,7 @@ const defaults = {
     title: "Clinic Accounts",
     subtitle: "Review clinic-linked HCP records and institution locations from CRM data.",
     query: "clinic",
-    filters: ["Medical Clinic", "Dental Clinic", "Diagnostics", "Primary Care"],
+    filters: ["Clinic", "Medical Center", "Metro Clinic", "City Medical Center"],
     cta: "View CRM Account",
   },
   hospitals: {
@@ -27,7 +27,7 @@ const defaults = {
     title: "Hospital Accounts",
     subtitle: "Map hospital-linked providers and account relationships already stored in CRM.",
     query: "hospital",
-    filters: ["Hospital", "Cardiology", "Neurology", "Oncology"],
+    filters: ["Hospital", "Apollo Hospital", "National Brain Institute", "Chest & Lung Hospital"],
     cta: "View CRM Account",
   },
 };
@@ -74,10 +74,10 @@ function DiscoveryPage({ type = "doctors" }) {
     setLoading(true);
     setError("");
     try {
-      const response = await searchHcps(query);
+      const response = await searchHcps("");
       setHcps(response.data || []);
     } catch {
-      setError("Could not load CRM location records. Please retry.");
+      setError("Could not load CRM records from the backend. Please retry.");
       setHcps([]);
     } finally {
       setLoading(false);
@@ -93,6 +93,7 @@ function DiscoveryPage({ type = "doctors" }) {
   }, []);
 
   useEffect(() => {
+    setQuery(config.query);
     fetchHcps();
   }, [type]);
 
