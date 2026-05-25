@@ -2095,6 +2095,31 @@ button:hover {
   line-height: 1.5;
 }
 
+.google-map {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #eff6ff;
+}
+
+.mini-google-map {
+  min-height: 230px;
+}
+
+.google-map > span {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
 .records-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

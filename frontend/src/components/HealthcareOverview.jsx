@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import GoogleMapPanel from "./GoogleMapPanel";
+
 const capabilityCards = [
   ["Find Doctors", "Discover verified specialists by city, speciality, rating, and distance.", "FD"],
   ["Nearby Clinics", "Compare clinics, availability, photos, directions, and contact details.", "NC"],
@@ -30,6 +32,11 @@ const reasons = [
 function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
   const [locationStatus, setLocationStatus] = useState("Requesting location permission...");
   const [coordinates, setCoordinates] = useState(null);
+  const homePlaces = [
+    { id: "home-1", name: "Apollo Hospital", latitude: coordinates?.latitude || 28.6139, longitude: coordinates?.longitude || 77.209 },
+    { id: "home-2", name: "CityCare Medical Clinic", latitude: coordinates ? Number(coordinates.latitude) + 0.01 : 28.6239, longitude: coordinates ? Number(coordinates.longitude) + 0.01 : 77.219 },
+    { id: "home-3", name: "Dr. Smith Clinic", latitude: coordinates ? Number(coordinates.latitude) - 0.01 : 28.6039, longitude: coordinates ? Number(coordinates.longitude) - 0.01 : 77.199 },
+  ];
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -77,12 +84,7 @@ function HealthcareOverview({ selectedHcp, onStartInteraction, onNavigate }) {
           <h2>Doctors, clinics, and hospitals around you</h2>
           <p>Location powers nearby discovery. If browser permission is blocked, use city or specialty search from the discovery pages.</p>
         </div>
-        <div className="mini-map">
-          <span>Nearby Providers</span>
-          <div className="map-marker marker-1">1</div>
-          <div className="map-marker marker-2">2</div>
-          <div className="map-marker marker-3">3</div>
-        </div>
+        <GoogleMapPanel places={homePlaces} location={coordinates} compact />
       </div>
 
       <div className="overview-info-card">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import GoogleMapPanel from "./GoogleMapPanel";
 import { searchPlaces } from "../hooks/api";
 
 const doctorSpecialties = ["Cardiologist", "Dentist", "Pediatrician", "Orthopedic Doctor", "Dermatologist", "General Physician"];
@@ -134,15 +135,10 @@ function DiscoveryPage({ type = "doctors" }) {
         </div>
 
         <aside className="map-panel">
-          <div className="map-canvas">
-            <span>Map View</span>
-            {markerSummary.map((place, index) => (
-              <div className={`map-marker marker-${index + 1}`} key={place.id || place.name}>{index + 1}</div>
-            ))}
-          </div>
+          <GoogleMapPanel places={markerSummary} location={location} />
           <p>
-            Google Maps data is loaded through the backend Places proxy. Add `GOOGLE_MAPS_API_KEY` in Render to show live
-            provider results.
+            Google Places data is loaded through the backend proxy. Add `GOOGLE_MAPS_API_KEY` on the backend and
+            `REACT_APP_GOOGLE_MAPS_API_KEY` on the frontend to show live Maps JavaScript rendering.
           </p>
         </aside>
       </section>
