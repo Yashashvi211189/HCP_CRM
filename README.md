@@ -23,7 +23,7 @@ HCP CRM combines three workflows in one application:
 <img width="940" height="429" alt="image" src="https://github.com/user-attachments/assets/14ba80aa-312d-471d-8b2c-2c767c053bb5" />
 
 
-- **AI Workspace:**convert natural language notes into structured CRM data with summaries, recommendations, confidence indicators, and doctor context.
+- **AI Workspace:** convert natural language notes into structured CRM data with summaries, recommendations, confidence indicators, and doctor context.
 - <img width="538" height="389" alt="image" src="https://github.com/user-attachments/assets/be2cfd4a-61a9-4991-8373-951b649072d3" />
 
 
