@@ -1,5 +1,9 @@
 # AI-Powered HCP CRM Interaction Logger
 
+## What is an HCP CRM?
+
+An HCP CRM system is a specialized platform that helps health and life sciences organizations - like pharmaceutical, biotechnology, and medical device manufacturers - manage communication and engagement with healthcare providers. Designed specifically for the healthcare and life sciences landscape, it centralizes provider data, tracks interactions across channels, supports regulatory compliance, and enables personalized, data-driven outreach.
+
 A full-stack, AI-first CRM module for capturing Healthcare Professional (HCP) interactions through natural language, structured review, and intelligent follow-up recommendations.
 
 Live App: [https://hcp-crm-rgft.onrender.com/](https://hcp-crm-rgft.onrender.com/)
