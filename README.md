@@ -5,6 +5,10 @@ A full-stack, AI-first CRM module for capturing Healthcare Professional (HCP) in
 This project helps pharmaceutical sales representatives, medical representatives, account managers, and field teams convert unstructured meeting notes into clean CRM records with minimal manual entry.
 
 ## Overview
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e60888ce-0ca7-4ecb-b4c9-12f120590273" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d2f6beb4-38ba-4285-b3aa-cf0bb28c8a66" />
+
+
 
 Traditional CRM tools often force field teams to fill long forms after every meeting. This application changes that workflow by allowing a representative to write a natural interaction note such as:
 
