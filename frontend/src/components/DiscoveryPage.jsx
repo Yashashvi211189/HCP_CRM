@@ -1,99 +1,84 @@
 import { useEffect, useMemo, useState } from "react";
 
-import GoogleMapPanel from "./GoogleMapPanel";
-import { searchPlaces } from "../hooks/api";
-import { searchNearbyWithGoogle, searchPlacesWithGoogle } from "../utils/googlePlacesSearch";
+import CRMMapPanel from "./CRMMapPanel";
+import { searchHcps } from "../hooks/api";
 
 const doctorSpecialties = ["Cardiologist", "Dentist", "Pediatrician", "Orthopedic Doctor", "Dermatologist", "General Physician"];
 
 const defaults = {
   doctors: {
     eyebrow: "Find doctors",
-    title: "Find Verified Doctors Near You",
-    subtitle: "Search by speciality, rating, distance, and availability across nearby healthcare providers.",
-    query: "doctor near me",
+    title: "Find CRM Doctors",
+    subtitle: "Search existing HCP records by name, specialty, institution, and CRM metadata.",
+    query: "",
     filters: doctorSpecialties,
-    cta: "Book Appointment",
-    googleType: "doctor",
+    cta: "Open Interaction Logger",
   },
   clinics: {
     eyebrow: "Clinics",
-    title: "Nearby Clinics",
-    subtitle: "Compare ratings, locations, contact details, and visit options for clinics around you.",
-    query: "medical clinic near me",
-    filters: ["Medical Clinic", "Dental Clinic", "Diagnostics", "Open Now"],
-    cta: "Book Visit",
-    googleType: "medical_clinic",
+    title: "Clinic Accounts",
+    subtitle: "Review clinic-linked HCP records and institution locations from CRM data.",
+    query: "clinic",
+    filters: ["Medical Clinic", "Dental Clinic", "Diagnostics", "Primary Care"],
+    cta: "View CRM Account",
   },
   hospitals: {
     eyebrow: "Hospitals",
-    title: "Hospitals Around You",
-    subtitle: "Find hospitals with emergency support, directions, ratings, and consultation options.",
-    query: "hospital near me",
-    filters: ["Emergency", "Multi-speciality", "Open Now", "Highest Rated"],
-    cta: "Book Consultation",
-    googleType: "hospital",
+    title: "Hospital Accounts",
+    subtitle: "Map hospital-linked providers and account relationships already stored in CRM.",
+    query: "hospital",
+    filters: ["Hospital", "Cardiology", "Neurology", "Oncology"],
+    cta: "View CRM Account",
   },
 };
+
+function normalizeHcp(hcp, index, type) {
+  return {
+    id: `${type}-${hcp.id || index}`,
+    name: type === "doctor" ? hcp.name : hcp.institution || hcp.name,
+    type,
+    typeLabel: type === "doctor" ? "Doctor" : type === "clinic" ? "Clinic" : "Hospital",
+    category: type === "doctor" ? "Doctor" : type === "clinic" ? "Clinic" : "Hospital",
+    specialty: hcp.specialty || "",
+    address: hcp.institution || "Address not available",
+    contact: hcp.phone || hcp.email || "",
+    metadata: type === "doctor" ? `CRM HCP ID: ${hcp.id || "N/A"}` : `Linked HCP: ${hcp.name}`,
+    rating: "CRM",
+    distance: hcp.latitude && hcp.longitude ? "CRM mapped" : "Coordinates missing",
+    open_now: undefined,
+    availability: "Use interaction logger",
+    latitude: hcp.latitude,
+    longitude: hcp.longitude,
+  };
+}
+
+function matchesType(hcp, type) {
+  const text = `${hcp.name || ""} ${hcp.specialty || ""} ${hcp.institution || ""}`.toLowerCase();
+  if (type === "clinics") return text.includes("clinic") || text.includes("center") || text.includes("centre");
+  if (type === "hospitals") return text.includes("hospital") || text.includes("institute");
+  return true;
+}
 
 function DiscoveryPage({ type = "doctors" }) {
   const config = defaults[type];
   const [query, setQuery] = useState(config.query);
   const [location, setLocation] = useState(null);
-  const [results, setResults] = useState([]);
+  const [hcps, setHcps] = useState([]);
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState("list");
-  const [source, setSource] = useState("configuration_required");
-  const [statusMessage, setStatusMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const markerSummary = useMemo(() => results.slice(0, 6), [results]);
+  const entityType = type === "clinics" ? "clinic" : type === "hospitals" ? "hospital" : "doctor";
 
-  const runSearch = async (nextQuery = query, nextLocation = location) => {
+  const fetchHcps = async () => {
     setLoading(true);
+    setError("");
     try {
-      if (process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
-        const normalizedQuery = (nextQuery || "").toLowerCase();
-        const places = normalizedQuery.includes("near me") && nextLocation
-          ? await searchNearbyWithGoogle({
-            location: nextLocation,
-            includedPrimaryType: config.googleType,
-            maxResultCount: 5,
-          })
-          : await searchPlacesWithGoogle({
-            query: nextQuery,
-            location: nextLocation,
-            includedType: "",
-            maxResultCount: 8,
-          });
-        setResults(places);
-        setSource("google-js");
-      } else {
-        const response = await searchPlaces({
-          query: nextQuery,
-          latitude: nextLocation?.latitude,
-          longitude: nextLocation?.longitude,
-          radius: 6000,
-        });
-        setResults(response.data.results || []);
-        setSource(response.data.source || "configuration_required");
-        setStatusMessage(response.data.message || "");
-      }
-    } catch (error) {
-      try {
-        const response = await searchPlaces({
-          query: nextQuery,
-          latitude: nextLocation?.latitude,
-          longitude: nextLocation?.longitude,
-          radius: 6000,
-        });
-        setResults(response.data.results || []);
-        setSource(response.data.source || "configuration_required");
-        setStatusMessage(response.data.message || "");
-      } catch {
-        setResults([]);
-        setSource("offline");
-        setStatusMessage("Provider search is unavailable. Check Google Maps configuration and backend connectivity.");
-      }
+      const response = await searchHcps(query);
+      setHcps(response.data || []);
+    } catch {
+      setError("Could not load CRM location records. Please retry.");
+      setHcps([]);
     } finally {
       setLoading(false);
     }
@@ -101,18 +86,26 @@ function DiscoveryPage({ type = "doctors" }) {
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
-      (position) => {
-        const nextLocation = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        setLocation(nextLocation);
-        runSearch(config.query, nextLocation);
-      },
-      () => runSearch(config.query, null),
+      (position) => setLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude }),
+      () => setLocation(null),
       { timeout: 5000 }
     );
-  }, [config.query]);
+  }, []);
+
+  useEffect(() => {
+    fetchHcps();
+  }, [type]);
+
+  const results = useMemo(() => {
+    const search = query.trim().toLowerCase();
+    return hcps
+      .filter((hcp) => matchesType(hcp, type))
+      .filter((hcp) => {
+        if (!search || ["clinic", "hospital"].includes(search)) return true;
+        return `${hcp.name || ""} ${hcp.specialty || ""} ${hcp.institution || ""}`.toLowerCase().includes(search);
+      })
+      .map((hcp, index) => normalizeHcp(hcp, index, entityType));
+  }, [entityType, hcps, query, type]);
 
   return (
     <main className="discovery-page">
@@ -130,12 +123,12 @@ function DiscoveryPage({ type = "doctors" }) {
 
       <section className="search-panel">
         <div className="search-row">
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search specialty, hospital, clinic, or city" />
-          <button type="button" onClick={() => runSearch()}>Search</button>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search CRM records by name, specialty, institution, or territory" />
+          <button type="button" onClick={fetchHcps}>Search</button>
         </div>
         <div className="filter-row">
           {config.filters.map((filter) => (
-            <button className="filter-chip" type="button" key={filter} onClick={() => { setQuery(`${filter} near me`); runSearch(`${filter} near me`); }}>
+            <button className="filter-chip" type="button" key={filter} onClick={() => setQuery(filter)}>
               {filter}
             </button>
           ))}
@@ -145,38 +138,42 @@ function DiscoveryPage({ type = "doctors" }) {
       <section className="discovery-layout">
         <div className={`result-list ${view === "map" ? "compact-results" : ""}`}>
           <div className="result-meta">
-            <strong>{loading ? "Searching nearby providers" : `${results.length} results found`}</strong>
-            <span>{source === "google-js" || source === "google" ? "Live Google Places results" : "Google Maps configuration required"}</span>
+            <strong>{loading ? "Loading CRM records" : `${results.length} CRM records found`}</strong>
+            <span>OpenStreetMap + Leaflet using existing backend data</span>
           </div>
-          {statusMessage && <div className="map-config-alert">{statusMessage}</div>}
-          {results.map((place) => (
-            <article className="provider-card" key={place.id || place.name}>
+          {error && (
+            <div className="map-config-alert">
+              {error} <button type="button" onClick={fetchHcps}>Retry</button>
+            </div>
+          )}
+          {loading && <div className="empty-state">Loading mapped CRM entities...</div>}
+          {!loading && results.map((place) => (
+            <article className="provider-card" key={place.id}>
               <div>
-                <p className="eyebrow">{place.category || config.eyebrow}</p>
+                <p className="eyebrow">{place.typeLabel}</p>
                 <h3>{place.name}</h3>
                 <p>{place.address}</p>
                 <div className="provider-meta">
-                  <span>Rating {place.rating || "New"}</span>
-                  <span>{place.distance || "Nearby"}</span>
-                  <span>{place.open_now === false ? "Closed" : "Open Now"}</span>
+                  {place.specialty && <span>{place.specialty}</span>}
+                  <span>{place.distance}</span>
+                  <span>{place.metadata}</span>
                 </div>
-                <p className="availability">Availability: {place.availability || "Check availability"}</p>
+                <p className="availability">{place.availability}</p>
               </div>
               <div className="provider-actions">
-                <a href={`tel:${place.phone || ""}`}>Call</a>
-                <a href={place.directions_url} target="_blank" rel="noreferrer">Directions</a>
+                <a href={place.contact?.includes("@") ? `mailto:${place.contact}` : `tel:${place.contact || ""}`}>Contact</a>
+                <button type="button" onClick={() => setView("map")}>Map View</button>
                 <button type="button">{config.cta}</button>
               </div>
             </article>
           ))}
-          {!loading && !results.length && <div className="empty-state">No live providers found. Configure Google Maps API keys or try another search.</div>}
+          {!loading && !results.length && <div className="empty-state">No mapped CRM records match this search. Add HCP or account data to populate the map.</div>}
         </div>
 
         <aside className="map-panel">
-          <GoogleMapPanel places={markerSummary} location={location} />
+          <CRMMapPanel places={results} location={location} />
           <p>
-            Google Places data is loaded through the backend proxy. Add `GOOGLE_MAPS_API_KEY` on the backend and
-            `REACT_APP_GOOGLE_MAPS_API_KEY` on the frontend to show live Maps JavaScript rendering.
+            Map powered by OpenStreetMap and Leaflet. Markers are generated from existing CRM HCP/account records.
           </p>
         </aside>
       </section>

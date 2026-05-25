@@ -2104,7 +2104,7 @@ button:hover {
   line-height: 1.5;
 }
 
-.google-map {
+.osm-map {
   position: relative;
   min-height: 420px;
   overflow: hidden;
@@ -2113,11 +2113,46 @@ button:hover {
   background: #eff6ff;
 }
 
-.mini-google-map {
+.mini-osm-map {
   min-height: 230px;
 }
 
-.google-map > span {
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  z-index: 0;
+}
+
+.map-empty-state {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 500;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary);
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.map-popup-card {
+  display: grid;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.map-popup-card strong {
+  color: var(--text);
+}
+
+.map-popup-card span,
+.map-popup-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.osm-map > span {
   position: absolute;
   top: 14px;
   left: 14px;

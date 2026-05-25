@@ -23,7 +23,6 @@ export const trackActivity = (action, route) => api.post("/api/activity", { acti
 export const listAdminUsers = (q = "") => api.get("/admin/users", { params: { q } });
 export const getAdminUserActivity = (id) => api.get(`/admin/users/${id}/activity`);
 export const sendChatMessage = (message, history = []) => api.post("/api/chat", { message, history });
-export const searchPlaces = (payload) => api.post("/api/places/search", payload);
 export const searchHcps = (q) => api.get("/api/hcps", { params: { q } });
 export const saveInteraction = (interaction) =>
   api.post("/api/interactions", {

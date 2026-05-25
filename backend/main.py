@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from email.message import EmailMessage
 from types import SimpleNamespace
 from typing import Optional
-from urllib import parse, request
+from urllib import request
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -217,13 +217,6 @@ class ChatRequest(BaseModel):
     history: Optional[list[dict]] = None
 
 
-class PlacesSearchRequest(BaseModel):
-    query: str
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    radius: Optional[int] = 5000
-
-
 class InteractionCreate(BaseModel):
     hcp_id: Optional[int] = None
     hcp_name: Optional[str] = ""
@@ -332,58 +325,6 @@ def serialize_user(user, db):
     }
 
 
-def _google_places_search(payload: PlacesSearchRequest):
-    api_key = os.getenv("GOOGLE_MAPS_API_KEY", "")
-    if not api_key:
-        return {
-            "source": "configuration_required",
-            "results": [],
-            "message": "Google Places is not configured. Set GOOGLE_MAPS_API_KEY on the backend service.",
-        }
-
-    params = {
-        "query": payload.query,
-        "key": api_key,
-    }
-    if payload.latitude is not None and payload.longitude is not None:
-        params["location"] = f"{payload.latitude},{payload.longitude}"
-        params["radius"] = str(payload.radius or 5000)
-
-    query_string = parse.urlencode(params)
-    url = f"https://maps.googleapis.com/maps/api/place/textsearch/json?{query_string}"
-    try:
-        with request.urlopen(url, timeout=8) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except Exception as exc:
-        return {
-            "source": "google_error",
-            "results": [],
-            "message": f"Google Places request failed: {exc}",
-        }
-
-    results = []
-    for place in data.get("results", [])[:12]:
-        location = place.get("geometry", {}).get("location", {})
-        name = place.get("name", "")
-        results.append(
-            {
-                "id": place.get("place_id", ""),
-                "name": name,
-                "category": ", ".join(place.get("types", [])[:2]).replace("_", " ").title(),
-                "rating": place.get("rating", "New"),
-                "address": place.get("formatted_address", ""),
-                "distance": "Nearby",
-                "phone": "",
-                "open_now": place.get("opening_hours", {}).get("open_now"),
-                "availability": "Check availability",
-                "latitude": location.get("lat"),
-                "longitude": location.get("lng"),
-                "directions_url": f"https://www.google.com/maps/search/?api=1&query={parse.quote_plus(name)}",
-            }
-        )
-    return {"source": "google", "results": results}
-
-
 @app.post("/auth/send-otp")
 def send_otp(payload: SendOTPRequest, db: Session = Depends(get_db)):
     if not payload.name.strip() or not payload.email.strip():
@@ -474,12 +415,6 @@ def chat(request: ChatRequest, user: User = Depends(current_user), db: Session =
     result = run_agent(request.message, request.history or [], None if is_temporary else db, user.id)
     log_activity(db, user.id, "crm_chat", "/api/chat")
     return result
-
-
-@app.post("/api/places/search")
-def places_search(payload: PlacesSearchRequest, user: User = Depends(current_user), db: Session = Depends(get_db)):
-    log_activity(db, user.id, "healthcare_place_search", "/api/places/search")
-    return _google_places_search(payload)
 
 
 @app.get("/api/hcps")
